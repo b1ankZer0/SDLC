@@ -1,7 +1,13 @@
 // authors.ts
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { res, createJwt } from "@/app/api/func";
+import {
+  res,
+  createJwt,
+  myError,
+  logout,
+  authMiddleware,
+} from "@/app/api/func";
 import { userDb } from "./model/m.user";
 
 const app = new Hono();
@@ -11,65 +17,93 @@ app.get("/all", async (c) => {
 });
 app.post("/reg", async (c) => {
   try {
-    const { name, email, password, dateOfBirth } = c.req.json();
-    if (!name || !email || !password || !dateOfBirth) {
-      throw new HTTPException(res.badRequest, {
-        message: "Missing required fields",
-      });
+    // const body = await c.req.parseBody({ dot: true });
+    const { name, email, password, dateOfBirth, gender } = await c.req.json();
+
+    if (!name || !email || !password || !dateOfBirth || !gender) {
+      return res.badRequest(c, "Missing required fields");
     }
-    const user = await userDb.create({ name, email, dateOfBirth, password });
+    const user = await userDb.create({
+      name,
+      email,
+      dateOfBirth,
+      gender,
+      password,
+    });
     await createJwt(c, {
+      _id: user._id,
       name: user.name,
       userName: user.userName,
       email: user.email,
       role: user.role,
     });
 
-    return c.json(user, 200);
+    return res.ok(c, user, "User created successfully");
   } catch (error) {
-    if (error instanceof HTTPException) {
-      return c.json({ error: error.message }, error.status);
+    myError(c, error);
+  }
+});
+app.post("/login", async (c) => {
+  try {
+    const { identifier, password } = await c.req.json();
+    if (!identifier || !password) {
+      return res.badRequest(c, "Missing required fields");
     }
-    console.error("Error in user registration:", error);
-    return c.json({ error: "Internal server error" }, res.error);
+
+    const user = await userDb.getLoginUser({
+      $or: [
+        { email: identifier },
+        { userName: identifier },
+        { phone: identifier },
+      ],
+    });
+    if (!user) {
+      return res.notFound(c, "User not found");
+    }
+    if (user.password !== password) {
+      return res.badRequest(c, "Invalid password");
+    }
+
+    const jwtData = {
+      _id: user._id,
+      name: user.name,
+      userName: user.userName,
+      email: user.email,
+      role: user.role,
+    };
+
+    await createJwt(c, jwtData);
+    // Perform login logic here
+    return res.ok(c, jwtData, "User logged in successfully");
+  } catch (error) {
+    myError(c, error);
   }
 });
 
-app.get("/login", async (c) => {
+app.get("/verify", authMiddleware(true), async (c) => {
   try {
-    const { email, password } = c.req.json();
-    if (!email || !password) {
-      throw new HTTPException(res.badRequest, {
-        message: "Missing required fields",
-      });
-    }
-
-    const user = userDb.findUserByEmail(email);
-    if (!user) {
-      throw new HTTPException(res.badRequest, {
-        message: "User not found",
-      });
-    }
-    if (user.password !== password) {
-      throw new HTTPException(res.badRequest, {
-        message: "Invalid password",
-      });
-    }
-
-    await createJwt(c, {
-      name: user.name,
-      userName: user.userName,
-      email: user.email,
-      role: user.role,
-    });
-    // Perform login logic here
-    return c.json({ message: "Login successful" }, 200);
+    return res.ok(c, c.get("user"), "User verified successfully");
   } catch (error) {
-    if (error instanceof HTTPException) {
-      return c.json({ error: error.message }, error.status);
-    }
-    console.error("Error in user login:", error);
-    return c.json({ error: "Internal server error" }, res.unauthorized);
+    myError(c, error);
+  }
+});
+
+app.get("/profile", authMiddleware(true), async (c) => {
+  try {
+    const user = await userDb.findById(c.get("user")._id);
+    user.password = undefined; // Remove password from response
+    return res.ok(c, user, "User verified successfully");
+  } catch (error) {
+    myError(c, error);
+  }
+});
+
+app.get("/logout", async (c) => {
+  try {
+    await logout(c);
+    return res.ok(c, {}, "User logged out successfully");
+  } catch (error) {
+    myError(c, error);
   }
 });
 

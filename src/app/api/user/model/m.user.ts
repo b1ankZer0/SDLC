@@ -17,23 +17,32 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please provide an email"],
       unique: true,
     },
+    logo: {
+      type: String,
+      default: "Not provided",
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      required: [true, "Please provide an gender"],
+    },
     dateOfBirth: {
       type: Date,
-      required: [true, "Please provide an dateOfBirth"],
+      required: [true, "Please provide an date Of Birth"],
     },
     phone: {
       type: String,
       // required: [true, "Please provide a phone number"],
       // unique: true,
     },
-    status:{
-        type: String,
-        enum: ["active", "inactive", "banned"],
-        default: "active",
+    status: {
+      type: String,
+      enum: ["active", "inactive", "banned"],
+      default: "active",
     },
     role: {
       type: String,
-      enum: ["sudo","admin", "user","doctor"],
+      enum: ["sudo", "admin", "user", "doctor"],
       default: "user",
     },
     password: {
@@ -91,9 +100,9 @@ export const userDb = {
         new: true,
         runValidators: true,
       });
-        return user;
-    }
-    catch (error) {
+      return user;
+    } catch (error) {
       throw new Error(error.message);
     }
+  },
 };

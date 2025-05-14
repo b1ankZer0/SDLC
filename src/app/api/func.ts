@@ -1,4 +1,3 @@
-import { error } from "console";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import jwt from "jsonwebtoken";
@@ -21,8 +20,8 @@ export async function createJwt(c, payload) {
       path: "/",
       maxAge: 60 * 60 * 24 * 1, // 1 day in seconds
     });
-  } catch (error) {
-    console.error("Error creating JWT:", error);
+  } catch (err) {
+    console.error("Error creating JWT:", err);
     throw new Error("Failed to create JWT");
   }
 }
@@ -73,31 +72,38 @@ export function authMiddleware(required: true, roles: string[] = []) {
 
       // Continue to next middleware/handler
       await next();
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        return c.json({ error: error.message }, error.status);
+    } catch (err) {
+      if (err instanceof HTTPException) {
+        return c.json(
+          { error: true, message: err.message, data: {} },
+          err.status
+        );
       }
 
-      console.error("Auth middleware error:", error);
-      return c.json({ error: "Authentication error" }, 500);
+      console.error("Auth middleware error:", err);
+      return res.error(c, "Internal server error in Auth middleware");
     }
   };
 }
 
-export function error(c, error) {
-  if (error instanceof HTTPException) {
-    return c.json({ error: error.message }, error.status);
+export function myError(c, err) {
+  if (err instanceof HTTPException) {
+    return c.json({ error: true, message: err.message, data: {} }, err.status);
   }
 
-  console.error("Error handler:", error);
-  return c.json({ error: "Internal server error" }, 500);
+  console.error("Error handler:", err);
+  return res.error(c, "Internal server error");
 }
 
 export const res = {
-  ok: 200,
-  badRequest: 400,
-  unauthorized: 401,
-  forbidden: 403,
-  notFound: 404,
-  error: 500,
+  ok: async (c, data, message) => c.json({ error: false, message, data }, 200),
+  badRequest: async (c, message) =>
+    c.json({ error: true, message, data: {} }, 400),
+  unauthorized: async (c, message) =>
+    c.json({ error: true, message, data: {} }, 401),
+  forbidden: async (c, message) =>
+    c.json({ error: true, message, data: {} }, 403),
+  notFound: async (c, message) =>
+    c.json({ error: true, message, data: {} }, 404),
+  error: async (c, message) => c.json({ error: true, message, data: {} }, 500),
 };

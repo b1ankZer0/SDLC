@@ -1,4 +1,5 @@
-// "use client";
+"use client";
+
 import { signal, computed, effect } from "@preact/signals-react";
 import Cookies from "js-cookie";
 
