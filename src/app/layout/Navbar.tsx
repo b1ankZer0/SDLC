@@ -147,9 +147,18 @@ export default function Navbar() {
                       className="max-w-xs flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
                     >
                       <span className="sr-only">Open user menu</span>
-                      <div className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white font-medium shadow-md">
-                        {user?.name.charAt(0)}
+                      <div className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white font-medium shadow-md overflow-hidden">
+                        {user?.logo && user.logo !== "Not provided" ? (
+                          <img
+                            src={user.logo}
+                            alt="Profile"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span>{user?.name?.charAt(0)}</span>
+                        )}
                       </div>
+
                       <span className="ml-2 text-gray-700 font-medium">
                         {user?.name}
                       </span>

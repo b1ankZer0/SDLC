@@ -7,7 +7,7 @@ import { callApi } from "@/global/func";
 import { useUser } from "@/global/hook/useUser";
 
 export default function Login() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, verifyUser } = useUser();
   const router = useRouter();
   if (user && !userLoading) {
     router.push("/");
@@ -23,20 +23,17 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await callApi(
-        "/user/login",
-        "post",
-        JSON.stringify({
-          identifier,
-          password,
-        })
-      );
+      const response = await callApi("/user/login", "post", {
+        identifier,
+        password,
+      });
 
       if (response.error) {
         throw new Error(response.message || "Login failed");
       }
 
       // Login successful, redirect to dashboard
+      verifyUser();
       router.push("/");
     } catch (err) {
       setError(err.message);
@@ -169,7 +166,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            {/* <div className="mt-6 grid grid-cols-2 gap-3">
               <div>
                 <a
                   href="#"
@@ -201,7 +198,7 @@ export default function Login() {
                   <span>Twitter</span>
                 </a>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="mt-6 text-center">

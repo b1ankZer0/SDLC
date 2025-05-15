@@ -7,8 +7,16 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
-export async function createJwt(c, payload) {
+export async function createJwt(c, user) {
   try {
+    const payload = {
+      _id: user._id,
+      name: user.name,
+      userName: user.userName,
+      email: user.email,
+      role: user.role,
+      logo: user.logo,
+    };
     const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "1d",
     });

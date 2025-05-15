@@ -7,7 +7,7 @@ import { callApi } from "@/global/func";
 import { useUser } from "@/global/hook/useUser";
 
 export default function Register() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, verifyUser } = useUser();
   const router = useRouter();
   if (user && !userLoading) {
     router.push("/");
@@ -40,23 +40,20 @@ export default function Register() {
     setLoading(true);
     // console.log(formData);
     try {
-      const response = await callApi(
-        "/user/reg",
-        "post",
-        JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          dateOfBirth: formData.dateOfBirth,
-          gender: formData.gender,
-        })
-      );
+      const response = await callApi("/user/reg", "post", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+      });
 
       if (!response.error) {
         throw new Error(response.message || "Login failed");
       }
 
       // Login successful, redirect to dashboard
+      verifyUser();
       router.push("/");
     } catch (err) {
       setError(err.message);

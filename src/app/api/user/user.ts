@@ -1,6 +1,5 @@
 // authors.ts
 import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import {
   res,
   createJwt,
@@ -9,6 +8,9 @@ import {
   authMiddleware,
 } from "@/app/api/func";
 import { userDb } from "./model/m.user";
+import path from "path";
+import fs from "fs/promises";
+import { randomUUID } from "crypto";
 
 const app = new Hono();
 
@@ -30,13 +32,7 @@ app.post("/reg", async (c) => {
       gender,
       password,
     });
-    await createJwt(c, {
-      _id: user._id,
-      name: user.name,
-      userName: user.userName,
-      email: user.email,
-      role: user.role,
-    });
+    await createJwt(c, user);
 
     return res.ok(c, user, "User created successfully");
   } catch (error) {
@@ -64,17 +60,10 @@ app.post("/login", async (c) => {
       return res.badRequest(c, "Invalid password");
     }
 
-    const jwtData = {
-      _id: user._id,
-      name: user.name,
-      userName: user.userName,
-      email: user.email,
-      role: user.role,
-    };
-
-    await createJwt(c, jwtData);
+    await createJwt(c, user);
+    user.password = undefined; // Remove password from response
     // Perform login logic here
-    return res.ok(c, jwtData, "User logged in successfully");
+    return res.ok(c, user, "User logged in successfully");
   } catch (error) {
     myError(c, error);
   }
@@ -96,6 +85,65 @@ app.get("/profile", authMiddleware(true), async (c) => {
   } catch (error) {
     myError(c, error);
   }
+});
+
+app.patch("/profile", authMiddleware(true), async (c) => {
+  const user = c.get("user"); // make sure authMiddleware sets this
+  const userId = user._id; // make sure authMiddleware sets this
+
+  const contentType = c.req.header("Content-Type") || "";
+  if (!contentType.includes("multipart/form-data")) {
+    return res.badRequest(c, "Content-Type must be multipart/form-data");
+  }
+
+  const formData = await c.req.formData();
+
+  const updateData: Record<string, any> = {
+    name: formData.get("name"),
+    email: formData.get("email"),
+    gender: formData.get("gender"),
+    dateOfBirth: formData.get("dateOfBirth"),
+    phone: formData.get("phone"),
+    address: formData.get("address"),
+  };
+
+  // Handle logo file
+  const logo = formData.get("logo");
+  // if (logo instanceof File && logo.size > 0) {
+  //   const buffer = await logo.arrayBuffer();
+  //   const base64Logo = Buffer.from(buffer).toString("base64");
+
+  //   // You could save it to disk, S3, or DB depending on your stack
+  //   updateData.logo = `data:${logo.type};base64,${base64Logo}`;
+  // }
+  if (logo instanceof File && logo.size > 0) {
+    const buffer = Buffer.from(await logo.arrayBuffer());
+
+    const ext = path.extname(logo.name) || ".png"; // default to .png
+    const fileName = `${Date.now()}-${randomUUID()}${ext}`;
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+
+    // Ensure uploads folder exists
+    await fs.mkdir(uploadsDir, { recursive: true });
+
+    const filePath = path.join(uploadsDir, fileName);
+    await fs.writeFile(filePath, buffer);
+
+    //delete old file if exists
+    const oldUser = await userDb.findById(userId);
+    if (oldUser.logo) {
+      const oldFilePath = path.join(uploadsDir, oldUser.logo.split("/").pop());
+      try {
+        await fs.unlink(oldFilePath);
+      } catch (err) {
+        console.error("Error deleting old file:", err);
+      }
+    }
+    updateData.logo = `/uploads/${fileName}`; // Public URL
+  }
+  const updatedUser = await userDb.updateUser(userId, updateData);
+
+  return res.ok(c, updatedUser, "Profile updated");
 });
 
 app.get("/logout", async (c) => {
