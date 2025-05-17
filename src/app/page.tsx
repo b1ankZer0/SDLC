@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useUser } from "@/global/hook/useUser";
 
 export default function HomePage() {
+  const { loading, isAuthenticated } = useUser();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
   const testimonials = [
@@ -363,29 +365,33 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-blue-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:flex lg:items-center lg:justify-between">
-            <div className="lg:w-3/5">
-              <h2 className="text-3xl font-bold">
-                Ready to experience better healthcare?
-              </h2>
-              <p className="mt-4 text-xl text-blue-100">
-                Join thousands of satisfied patients who have transformed their
-                healthcare experience with HealthPlus.
-              </p>
-            </div>
-            <div className="mt-8 lg:mt-0 lg:w-2/5 lg:flex lg:justify-end">
-              <Link
-                href="/register"
-                className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-md text-lg font-medium inline-block text-center"
-              >
-                Sign Up Now
-              </Link>
+      {isAuthenticated ? (
+        <></>
+      ) : (
+        <section className="py-16 bg-blue-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="lg:flex lg:items-center lg:justify-between">
+              <div className="lg:w-3/5">
+                <h2 className="text-3xl font-bold">
+                  Ready to experience better healthcare?
+                </h2>
+                <p className="mt-4 text-xl text-blue-100">
+                  Join thousands of satisfied patients who have transformed
+                  their healthcare experience with HealthPlus.
+                </p>
+              </div>
+              <div className="mt-8 lg:mt-0 lg:w-2/5 lg:flex lg:justify-end">
+                <Link
+                  href="/register"
+                  className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-md text-lg font-medium inline-block text-center"
+                >
+                  Sign Up Now
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </main>
   );
 }

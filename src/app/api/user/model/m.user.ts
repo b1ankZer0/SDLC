@@ -61,6 +61,43 @@ const UserSchema = new mongoose.Schema(
 // Check if model exists before compiling
 const userModel = mongoose.models.User || mongoose.model("User", UserSchema);
 
+const roleReqSchema = new mongoose.Schema(
+  {
+    ref: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
+    role: {
+      type: String,
+      enum: ["doctor"],
+      default: "user",
+    },
+    givenDoc: [
+      {
+        type: String,
+      },
+    ],
+    message: {
+      type: String,
+      default: "Not provided",
+    },
+    reason: {
+      type: String,
+      default: "Not provided",
+    },
+  },
+  { timestamps: true }
+);
+
+// Check if model exists before compiling
+const roleReqModel =
+  mongoose.models.roleReq || mongoose.model("roleReq", roleReqSchema);
+
 export const userDb = {
   async create(userData) {
     try {
@@ -101,6 +138,44 @@ export const userDb = {
         runValidators: true,
       });
       return user;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+};
+
+export const roleReqDb = {
+  async create(roleReqData: {}) {
+    try {
+      const roleReq = await roleReqModel.create(roleReqData);
+      return roleReq;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async findById(id) {
+    try {
+      const roleReq = await roleReqModel.findById(id);
+      return roleReq;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async getAllRoleReq() {
+    try {
+      const roleReq = await roleReqModel.find({}).populate("ref");
+      return roleReq;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async updateRoleReq(id, roleReqData) {
+    try {
+      const roleReq = await roleReqModel.findByIdAndUpdate(id, roleReqData, {
+        new: true,
+        runValidators: true,
+      });
+      return roleReq;
     } catch (error) {
       throw new Error(error.message);
     }

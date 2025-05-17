@@ -1,4 +1,3 @@
-// authors.ts
 import { Hono } from "hono";
 import {
   res,
@@ -7,16 +6,19 @@ import {
   logout,
   authMiddleware,
 } from "@/app/api/func";
-import { userDb } from "./model/m.user";
+import { userDb,roleReqDb } from "./model/m.user";
 import path from "path";
 import fs from "fs/promises";
 import { randomUUID } from "crypto";
+import bcrypt from "bcrypt";
 
 const app = new Hono();
+const SALT_ROUNDS = 10; // Recommended salt rounds for bcrypt
 
 app.get("/all", async (c) => {
   return c.json(await userDb.getAllUsers());
 });
+
 app.post("/reg", async (c) => {
   try {
     // const body = await c.req.parseBody({ dot: true });
@@ -25,12 +27,15 @@ app.post("/reg", async (c) => {
     if (!name || !email || !password || !dateOfBirth || !gender) {
       return res.badRequest(c, "Missing required fields");
     }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     const user = await userDb.create({
       name,
       email,
       dateOfBirth,
       gender,
-      password,
+      password: hashedPassword,
     });
     await createJwt(c, user);
 
@@ -39,6 +44,7 @@ app.post("/reg", async (c) => {
     myError(c, error);
   }
 });
+
 app.post("/login", async (c) => {
   try {
     const { identifier, password } = await c.req.json();
@@ -56,7 +62,9 @@ app.post("/login", async (c) => {
     if (!user) {
       return res.notFound(c, "User not found");
     }
-    if (user.password !== password) {
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       return res.badRequest(c, "Invalid password");
     }
 
@@ -150,6 +158,31 @@ app.get("/logout", async (c) => {
   try {
     await logout(c);
     return res.ok(c, {}, "User logged out successfully");
+  } catch (error) {
+    myError(c, error);
+  }
+});
+
+app.get("/addRoleReq", authMiddleware(true), async (c) => {
+  try {
+    const _id = c.get("user")._id;
+    const user = await userDb.findById(_id);
+    if(user.role!== "user"||user.address=="Not provided"||!user.phone){
+      return res.badRequest(c, "You already have a role or plz update user info");{
+    }
+
+    const body = await c.req.json();
+    if (!body.role) {
+      return res.badRequest(c, "Missing required fields");
+    }
+
+    const ondReq = await roleReqDb.findOne({ userId: _id });
+    if (oldReq) {
+      return res.badRequest(c, "You already have a role request");
+    }
+
+    const role = await roleReqDb.create({ userId: user._id });
+    return res.ok(c, role, "Role fetched successfully");
   } catch (error) {
     myError(c, error);
   }
