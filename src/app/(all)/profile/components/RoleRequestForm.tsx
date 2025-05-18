@@ -1,9 +1,9 @@
 "use client";
 
 import FileUploader from "@/app/utils/fileUploder";
-import { callApi, callApiForm } from "@/global/func";
+import { callApiForm } from "@/global/func";
 import { useMutation } from "@tanstack/react-query";
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 
 export default function RoleRequestForm() {
@@ -43,10 +43,10 @@ export default function RoleRequestForm() {
     formData.append("role", role);
     formData.append("description", description);
 
-    formData.append("givenDoc", files);
-    // files.forEach((file) => {
-    //   formData.append("givenDoc", file);
-    // });
+    // formData.append("givenDoc", files);
+    files.forEach((file) => {
+      formData.append("givenDoc", file);
+    });
 
     mutate(formData);
   };

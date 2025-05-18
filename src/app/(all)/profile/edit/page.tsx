@@ -9,6 +9,16 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import { callApi, callApiForm } from "@/global/func";
 
+type UserProfile = {
+  name: string;
+  email: string;
+  gender?: string;
+  dateOfBirth?: string;
+  phone?: string;
+  address?: string;
+  logo?: string;
+};
+
 export default function EditProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -20,12 +30,12 @@ export default function EditProfilePage() {
     data: user,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<UserProfile>({
     queryKey: ["profile"],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserProfile> => {
       const res = await callApi("/user/profile", "GET");
       if (res.error) throw new Error(res.message);
-      return res.data;
+      return res.data as UserProfile;
     },
     enabled: isAuthenticated,
   });
@@ -36,19 +46,19 @@ export default function EditProfilePage() {
     reset,
     formState: { errors },
     setError,
-  } = useForm();
+  } = useForm<UserProfile>();
 
   useEffect(() => {
-    if (user) {
+    if (user && typeof user === "object" && "name" in user && "email" in user) {
       reset({
-        name: user.name,
-        email: user.email,
-        gender: user.gender,
-        dateOfBirth: user.dateOfBirth?.split("T")[0],
-        phone: user.phone,
-        address: user.address,
+        name: (user as UserProfile).name,
+        email: (user as UserProfile).email,
+        gender: (user as UserProfile).gender,
+        dateOfBirth: (user as UserProfile).dateOfBirth?.split("T")[0],
+        phone: (user as UserProfile).phone,
+        address: (user as UserProfile).address,
       });
-      setLogoPreview(user.logo || "/default-avatar.png");
+      setLogoPreview((user as UserProfile).logo || "/default-avatar.png");
     }
   }, [user, reset]);
 
@@ -79,7 +89,7 @@ export default function EditProfilePage() {
     }
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       formData.append(key, value as string);
@@ -147,11 +157,13 @@ export default function EditProfilePage() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   placeholder="Enter your name"
                 />
-                {errors.name && (
-                  <p className="mt-2 text-sm text-red-600">
-                    {errors.name.message}
-                  </p>
-                )}
+                {errors.name &&
+                  typeof errors.name === "object" &&
+                  "message" in errors.name && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.name.message as string}
+                    </p>
+                  )}
               </div>
 
               {/* Other form fields with placeholders */}

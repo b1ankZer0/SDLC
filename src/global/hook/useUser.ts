@@ -38,8 +38,8 @@ export const useUser = () => {
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: any) => {
-      await callApi("/user/login", "POST", credentials);
+    mutationFn: async (credentials) => {
+      await callApi("/user/login", "POST", credentials as object);
     },
     onSuccess: () => {
       verifyUser(); // refetch user after login

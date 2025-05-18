@@ -8,6 +8,9 @@ const app = new Hono().basePath("/api");
 import userRoute from "../user/user";
 app.route("/user", userRoute);
 
+import problemsRoute from "../problems/problems";
+app.route("/problems", problemsRoute);
+
 export const GET = handle(app);
 export const POST = handle(app);
 export const PATCH = handle(app);

@@ -9,13 +9,13 @@ if (!BASE_URL) {
 type ApiResponse = {
   error: boolean;
   message: string;
-  data: any;
+  data: object;
 };
 
 export async function callApi(
   url: string,
   method: string,
-  body?: any
+  body?: object
 ): Promise<ApiResponse> {
   try {
     const mainUrl = BASE_URL + url;
@@ -39,7 +39,7 @@ export async function callApi(
     } else {
       throw new Error(`API call failed with status ${res.status}`);
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("API call error:", error);
     return {
       error: true,
@@ -52,7 +52,7 @@ export async function callApi(
 export async function callApiForm(
   url: string,
   method: string,
-  body?: any
+  body?: object
 ): Promise<ApiResponse> {
   try {
     const mainUrl = BASE_URL + url;
@@ -80,7 +80,7 @@ export async function callApiForm(
     } else {
       throw new Error(`API call failed with status ${res.status}`);
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("API call error:", error);
     return {
       error: true,

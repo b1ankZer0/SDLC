@@ -27,14 +27,14 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please provide a password"],
       minlength: [6, "Password cannot be less than 6 characters"],
     },
-    status:{
-        type: String,
-        enum: ["active", "inactive", "banned"],
-        default: "active",
+    status: {
+      type: String,
+      enum: ["active", "inactive", "banned"],
+      default: "active",
     },
     role: {
       type: String,
-      enum: ["sudo","admin", "user","doctor"],
+      enum: ["sudo", "admin", "user", "doctor"],
       default: "user",
     },
     address: {
@@ -87,9 +87,9 @@ export const userDb = {
         new: true,
         runValidators: true,
       });
-        return user;
-    }
-    catch (error) {
+      return user;
+    } catch (error) {
       throw new Error(error.message);
     }
+  },
 };

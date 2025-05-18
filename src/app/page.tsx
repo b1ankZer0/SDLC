@@ -4,10 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/global/hook/useUser";
-import FileUploader from "./utils/fileUploder";
 
 export default function HomePage() {
-  const { loading, isAuthenticated } = useUser();
+  const { isAuthenticated } = useUser();
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
   const testimonials = [
@@ -276,7 +275,7 @@ export default function HomePage() {
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-8">
               <p className="text-gray-600 italic text-lg mb-6">
-                "{testimonials[activeTestimonial].quote}"
+                &quot;{testimonials[activeTestimonial].quote}&quot;
               </p>
               <div className="flex items-center">
                 <div className="flex-shrink-0 h-12 w-12 rounded-full overflow-hidden">

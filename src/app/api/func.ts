@@ -58,20 +58,22 @@ export async function logout(c) {
   await deleteCookie(c, "authToken");
 }
 
-export async function fileUploadHandler(files, options = { numOfFiles: 1 }) {
+export async function fileUploadHandler(files, options) {
   try {
-    const link = [];
+    const links = [];
     if (files instanceof Array) {
-      if (files.length > numOfFiles) {
-        throw new Error(`Only ${numOfFiles} files are allowed`);
+      if (files.length > options.numOfFiles) {
+        throw new Error(`Only ${options.numOfFiles} files are allowed`);
         return [];
       }
-      files.map(async (file) => {
-        link.push(await fileUpload(file));
-      });
-    } else link.push(await fileUpload(files));
+      await Promise.all(
+        files.map(async (file) => {
+          links.push(await fileUpload(file));
+        })
+      );
+    } else links.push(await fileUpload(files));
 
-    return link;
+    return links;
   } catch (err) {
     console.error("File upload error:", err);
     throw new Error("File upload failed");
@@ -80,7 +82,6 @@ export async function fileUploadHandler(files, options = { numOfFiles: 1 }) {
 }
 
 const fileUpload = async (file) => {
-  console.log(import.meta.url + " : ", file);
   if (file instanceof File && file.size > 0) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -97,6 +98,7 @@ const fileUpload = async (file) => {
   } else {
     console.error(error);
     throw new Error("Invalid file type or size");
+    return "";
   }
 };
 
@@ -162,6 +164,7 @@ export function authMiddleware(required: true, roles: string[] = []) {
 }
 
 export function myError(c, err) {
+  console.error("Error:", err);
   if (err instanceof HTTPException) {
     return c.json({ error: true, message: err.message, data: {} }, err.status);
   }

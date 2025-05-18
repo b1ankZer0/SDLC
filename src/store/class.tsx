@@ -436,14 +436,14 @@ const allStoreFun: Record<StorageType, any> = {
   indexDbStore: indexDbStore,
 };
 
-const storeType: Record<StorageType, any> = {
-  mySignal: MySignal,
-  localStore: LocalStore,
-  sessionStore: SessionStore,
-  cookieStore: CookieStore,
-  urlStore: UrlStore,
-  indexDbStore: IndexDbStore,
-};
+// const storeType: Record<StorageType, any> = {
+//   mySignal: MySignal,
+//   localStore: LocalStore,
+//   sessionStore: SessionStore,
+//   cookieStore: CookieStore,
+//   urlStore: UrlStore,
+//   indexDbStore: IndexDbStore,
+// };
 
 const store = {};
 

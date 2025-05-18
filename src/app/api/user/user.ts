@@ -14,8 +14,8 @@ import bcrypt from "bcrypt";
 const app = new Hono();
 const SALT_ROUNDS = 10; // Recommended salt rounds for bcrypt
 
-app.get("/all", async (c) => {
-  return c.json(await userDb.getAllUsers());
+app.get("/all", authMiddleware(true, ["sudo", "admin"]), async (c) => {
+  return res.ok(c, await userDb.getAllUsers(), "User verified successfully");
 });
 
 app.post("/reg", async (c) => {
@@ -57,6 +57,7 @@ app.post("/login", async (c) => {
         { userName: identifier },
         { phone: identifier },
       ],
+      status: "active",
     });
     if (!user) {
       return res.notFound(c, "User not found");
@@ -84,6 +85,27 @@ app.get("/verify", authMiddleware(true), async (c) => {
   }
 });
 
+app.patch(
+  "/updateUser/:id",
+  authMiddleware(true, ["sudo", "admin"]),
+  async (c) => {
+    const user = c.get("user"); // make sure authMiddleware sets this
+    const userId = user._id; // make sure authMiddleware sets this
+
+    const _id = c.req.param("id");
+    const body = await c.req.json();
+    const updateData: Record<string, number> = {
+      role: body.role,
+      status: body.status,
+      by: userId,
+    };
+
+    const updatedUser = await userDb.updateUser(_id, updateData);
+
+    return res.ok(c, updatedUser, "Profile updated");
+  }
+);
+
 app.get("/profile", authMiddleware(true), async (c) => {
   try {
     const user = await userDb.findById(c.get("user")._id);
@@ -105,7 +127,7 @@ app.patch("/profile", authMiddleware(true), async (c) => {
 
   const formData = await c.req.formData();
 
-  const updateData: Record<string, any> = {
+  const updateData: Record<string, number> = {
     name: formData.get("name"),
     email: formData.get("email"),
     gender: formData.get("gender"),
@@ -156,9 +178,8 @@ app.post("/addRoleReq", authMiddleware(true), async (c) => {
 
     const body = await c.req.formData();
     const role = body.get("role");
-    const givenDoc = body.get("givenDoc");
+    const givenDoc = body.getAll("givenDoc") as File[];
     const description = body.get("description");
-    console.log(import.meta.url + " : ", givenDoc);
     if (!role || !givenDoc) {
       return res.badRequest(c, "Missing required fields");
     }
@@ -181,5 +202,61 @@ app.post("/addRoleReq", authMiddleware(true), async (c) => {
     myError(c, error);
   }
 });
+
+app.get(
+  "/getAllRoleReq",
+  authMiddleware(true, ["sudo", "admin"]),
+  async (c) => {
+    try {
+      const role = c.get("user").role;
+      if (!["sudo", "admin"].includes(role)) {
+        return res.forbidden(c, "You are not authorized to view this");
+      }
+      const roleReq = await roleReqDb.getAllRoleReq();
+      if (!roleReq) {
+        return res.notFound(c, "No role request found");
+      }
+      return res.ok(c, roleReq, "Role fetched successfully");
+    } catch (error) {
+      myError(c, error);
+    }
+  }
+);
+
+app.patch(
+  "/updateRoleReq/:id",
+  authMiddleware(true, ["sudo", "admin"]),
+  async (c) => {
+    try {
+      const user = c.get("user");
+      const role = user.role;
+      if (!["sudo", "admin"].includes(role)) {
+        return res.forbidden(c, "You are not authorized to view this");
+      }
+      const id = c.req.param("id");
+      const body = await c.req.json();
+      const roleReq = await roleReqDb.findById(id);
+      if (!roleReq) {
+        return res.notFound(c, "No role request found");
+      }
+      body.by = user._id;
+      const updatedRoleReq = await roleReqDb.updateRoleReq(id, body);
+      if (!updatedRoleReq) {
+        return res.notFound(c, "No role request found");
+      }
+      if (body.status === "accepted") {
+        const user = await userDb.findById(roleReq.ref);
+        if (!user) {
+          return res.notFound(c, "No user found");
+        }
+        await userDb.updateUser(roleReq.ref, { role: roleReq.role });
+      }
+
+      return res.ok(c, updatedRoleReq, "Role request updated successfully");
+    } catch (error) {
+      myError(c, error);
+    }
+  }
+);
 
 export default app;

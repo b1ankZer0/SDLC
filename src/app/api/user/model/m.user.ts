@@ -54,6 +54,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "Not provided",
     },
+    by: {
+      type: String,
+      default: "-",
+    },
   },
   { timestamps: true }
 );
@@ -89,6 +93,10 @@ const roleReqSchema = new mongoose.Schema(
     reason: {
       type: String,
       default: "Not provided",
+    },
+    by: {
+      type: String,
+      default: "-",
     },
   },
   { timestamps: true }
@@ -177,7 +185,7 @@ export const roleReqDb = {
   },
   async getAllRoleReq() {
     try {
-      const roleReq = await roleReqModel.find({}).populate("ref");
+      const roleReq = await roleReqModel.find().populate("ref");
       return roleReq;
     } catch (error) {
       throw new Error(error.message);

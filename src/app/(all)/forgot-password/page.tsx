@@ -1,18 +1,18 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { callApi } from "@/global/func";
 
 export default function ForgotPassword() {
-  const router = useRouter();
+  // const router = useRouter();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async (email) => {
+    mutationFn: async (email: string) => {
       const response = await callApi("/user/forgot-password", "post", {
         email,
       });
@@ -43,8 +43,9 @@ export default function ForgotPassword() {
           <div className="mb-8">
             <h3 className="text-2xl font-bold mb-4">Reset Your Password</h3>
             <p className="text-blue-100">
-              Don't worry, it happens to the best of us. Enter your email
-              address and we'll send you instructions to reset your password.
+              Don&apos;t worry, it happens to the best of us. Enter your email
+              address and we&apos;ll send you instructions to reset your
+              password.
             </p>
           </div>
 
@@ -80,8 +81,8 @@ export default function ForgotPassword() {
               <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
                 <p className="font-medium">Reset email sent!</p>
                 <p className="mt-1 text-sm">
-                  We've sent instructions to reset your password to {email}.
-                  Please check your inbox and follow the link in the email.
+                  We&apos;ve sent instructions to reset your password to {email}
+                  . Please check your inbox and follow the link in the email.
                 </p>
               </div>
 

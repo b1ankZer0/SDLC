@@ -42,6 +42,9 @@ body {
 body {
   @apply bg-gray-50 text-gray-800 min-h-screen;
 }
+.mybody {
+  @apply min-h-screen;
+}
 
 input:placeholder-shown,
 textarea:placeholder-shown {
