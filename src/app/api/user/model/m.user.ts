@@ -82,7 +82,7 @@ const roleReqSchema = new mongoose.Schema(
         type: String,
       },
     ],
-    message: {
+    description: {
       type: String,
       default: "Not provided",
     },
@@ -99,7 +99,13 @@ const roleReqModel =
   mongoose.models.roleReq || mongoose.model("roleReq", roleReqSchema);
 
 export const userDb = {
-  async create(userData) {
+  async create(userData: {
+    name: string;
+    email: string;
+    gender: string;
+    dateOfBirth: string;
+    password: string;
+  }) {
     try {
       const user = await userModel.create(userData);
       return user;
@@ -145,9 +151,17 @@ export const userDb = {
 };
 
 export const roleReqDb = {
-  async create(roleReqData: {}) {
+  async create(roleReqData) {
     try {
       const roleReq = await roleReqModel.create(roleReqData);
+      return roleReq;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async findOne(getBy) {
+    try {
+      const roleReq = await roleReqModel.findOne(getBy);
       return roleReq;
     } catch (error) {
       throw new Error(error.message);

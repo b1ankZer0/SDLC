@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/global/hook/useUser";
+import FileUploader from "./utils/fileUploder";
 
 export default function HomePage() {
   const { loading, isAuthenticated } = useUser();
@@ -16,7 +17,7 @@ export default function HomePage() {
       role: "Patient",
       image: "/api/placeholder/80/80",
       quote:
-        "HealthPlus transformed my healthcare experience. The doctors are attentive, appointments are easy to schedule, and I feel truly cared for.",
+        "HealthSync transformed my healthcare experience. The doctors are attentive, appointments are easy to schedule, and I feel truly cared for.",
     },
     {
       id: 2,
@@ -24,7 +25,7 @@ export default function HomePage() {
       role: "Patient",
       image: "/api/placeholder/80/80",
       quote:
-        "After struggling with traditional healthcare options, HealthPlus has been a breath of fresh air. Their preventative care approach has made a real difference in my wellbeing.",
+        "After struggling with traditional healthcare options, HealthSync has been a breath of fresh air. Their preventative care approach has made a real difference in my wellbeing.",
     },
     {
       id: 3,
@@ -32,7 +33,7 @@ export default function HomePage() {
       role: "Partner Physician",
       image: "/api/placeholder/80/80",
       quote:
-        "Working with HealthPlus allows me to focus on what matters most - providing quality care to my patients with the support of cutting-edge technology.",
+        "Working with HealthSync allows me to focus on what matters most - providing quality care to my patients with the support of cutting-edge technology.",
     },
   ];
 
@@ -377,7 +378,7 @@ export default function HomePage() {
                 </h2>
                 <p className="mt-4 text-xl text-blue-100">
                   Join thousands of satisfied patients who have transformed
-                  their healthcare experience with HealthPlus.
+                  their healthcare experience with HealthSync.
                 </p>
               </div>
               <div className="mt-8 lg:mt-0 lg:w-2/5 lg:flex lg:justify-end">

@@ -14,7 +14,7 @@ export default function Footer() {
               <div className="h-10 w-10 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold">
                 H+
               </div>
-              <span className="ml-2 text-xl font-bold">HealthPlus</span>
+              <span className="ml-2 text-xl font-bold">HealthSync</span>
             </div>
             <p className="mt-4 text-gray-400 max-w-xs">
               Your complete health and wellness solution. Track, improve, and
@@ -153,7 +153,7 @@ export default function Footer() {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                <span>contact@healthplus.com</span>
+                <span>contact@HealthSync.com</span>
               </li>
               <li className="flex items-center">
                 <svg
@@ -234,7 +234,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-base text-gray-400 md:order-1">
-            &copy; {currentYear} HealthPlus. All rights reserved.
+            &copy; {currentYear} HealthSync. All rights reserved.
           </p>
           <div className="flex space-x-6 md:order-2 mt-4 md:mt-0">
             <Link

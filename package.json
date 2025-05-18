@@ -11,8 +11,10 @@
   "dependencies": {
     "@preact/signals-react": "^3.0.1",
     "@tanstack/react-query": "^5.76.1",
+    "add": "^2.0.6",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
+    "dropdown-menu": "^0.1.1",
     "hono": "^4.7.8",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
@@ -21,7 +23,9 @@
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.56.3"
+    "react-hook-form": "^7.56.3",
+    "react-hot-toast": "^2.5.2",
+    "shadcn-ui": "^0.9.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

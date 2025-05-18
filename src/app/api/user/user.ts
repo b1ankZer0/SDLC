@@ -5,11 +5,10 @@ import {
   myError,
   logout,
   authMiddleware,
+  fileUploadHandler,
+  deleteFile,
 } from "@/app/api/func";
-import { userDb,roleReqDb } from "./model/m.user";
-import path from "path";
-import fs from "fs/promises";
-import { randomUUID } from "crypto";
+import { userDb, roleReqDb } from "./model/m.user";
 import bcrypt from "bcrypt";
 
 const app = new Hono();
@@ -116,38 +115,14 @@ app.patch("/profile", authMiddleware(true), async (c) => {
   };
 
   // Handle logo file
-  const logo = formData.get("logo");
-  // if (logo instanceof File && logo.size > 0) {
-  //   const buffer = await logo.arrayBuffer();
-  //   const base64Logo = Buffer.from(buffer).toString("base64");
-
-  //   // You could save it to disk, S3, or DB depending on your stack
-  //   updateData.logo = `data:${logo.type};base64,${base64Logo}`;
-  // }
-  if (logo instanceof File && logo.size > 0) {
-    const buffer = Buffer.from(await logo.arrayBuffer());
-
-    const ext = path.extname(logo.name) || ".png"; // default to .png
-    const fileName = `${Date.now()}-${randomUUID()}${ext}`;
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-
-    // Ensure uploads folder exists
-    await fs.mkdir(uploadsDir, { recursive: true });
-
-    const filePath = path.join(uploadsDir, fileName);
-    await fs.writeFile(filePath, buffer);
-
-    //delete old file if exists
+  const logoFile = formData.get("logo");
+  if (logoFile) {
+    const links = await fileUploadHandler(logoFile, { numOfFiles: 1 });
     const oldUser = await userDb.findById(userId);
-    if (oldUser.logo) {
-      const oldFilePath = path.join(uploadsDir, oldUser.logo.split("/").pop());
-      try {
-        await fs.unlink(oldFilePath);
-      } catch (err) {
-        console.error("Error deleting old file:", err);
-      }
+    deleteFile(oldUser.logo);
+    if (links.length > 0) {
+      updateData.logo = links[0];
     }
-    updateData.logo = `/uploads/${fileName}`; // Public URL
   }
   const updatedUser = await userDb.updateUser(userId, updateData);
 
@@ -163,26 +138,45 @@ app.get("/logout", async (c) => {
   }
 });
 
-app.get("/addRoleReq", authMiddleware(true), async (c) => {
+app.post("/addRoleReq", authMiddleware(true), async (c) => {
   try {
     const _id = c.get("user")._id;
     const user = await userDb.findById(_id);
-    if(user.role!== "user"||user.address=="Not provided"||!user.phone){
-      return res.badRequest(c, "You already have a role or plz update user info");{
+    if (user.role !== "user" || user.address == "Not provided" || !user.phone) {
+      return res.badRequest(
+        c,
+        "You already have a role or plz update user info"
+      );
     }
 
-    const body = await c.req.json();
-    if (!body.role) {
-      return res.badRequest(c, "Missing required fields");
-    }
-
-    const ondReq = await roleReqDb.findOne({ userId: _id });
+    const oldReq = await roleReqDb.findOne({ ref: _id });
     if (oldReq) {
       return res.badRequest(c, "You already have a role request");
     }
 
-    const role = await roleReqDb.create({ userId: user._id });
-    return res.ok(c, role, "Role fetched successfully");
+    const body = await c.req.formData();
+    const role = body.get("role");
+    const givenDoc = body.get("givenDoc");
+    const description = body.get("description");
+    console.log(import.meta.url + " : ", givenDoc);
+    if (!role || !givenDoc) {
+      return res.badRequest(c, "Missing required fields");
+    }
+
+    const links = await fileUploadHandler(givenDoc, {
+      numOfFiles: 5,
+    });
+    if (links.length < 1) {
+      return res.badRequest(c, "no valid files found");
+    }
+    const roleReq = await roleReqDb.create({
+      ref: _id,
+      role,
+      givenDoc: links,
+      description,
+    });
+
+    return res.ok(c, roleReq, "Role fetched successfully");
   } catch (error) {
     myError(c, error);
   }

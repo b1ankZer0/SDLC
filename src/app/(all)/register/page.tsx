@@ -48,7 +48,7 @@ export default function Register() {
         gender: formData.gender,
       });
 
-      if (!response.error) {
+      if (response.error) {
         throw new Error(response.message || "Login failed");
       }
 

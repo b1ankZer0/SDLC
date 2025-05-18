@@ -1,7 +1,12 @@
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import jwt from "jsonwebtoken";
+import path from "path";
+import fs from "fs/promises";
+import { randomUUID } from "crypto";
+import { error } from "console";
 
+const uploadsDir = path.join(process.cwd(), "public", "uploads");
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
@@ -52,6 +57,68 @@ export async function verifyJwt(c) {
 export async function logout(c) {
   await deleteCookie(c, "authToken");
 }
+
+export async function fileUploadHandler(files, options = { numOfFiles: 1 }) {
+  try {
+    const link = [];
+    if (files instanceof Array) {
+      if (files.length > numOfFiles) {
+        throw new Error(`Only ${numOfFiles} files are allowed`);
+        return [];
+      }
+      files.map(async (file) => {
+        link.push(await fileUpload(file));
+      });
+    } else link.push(await fileUpload(files));
+
+    return link;
+  } catch (err) {
+    console.error("File upload error:", err);
+    throw new Error("File upload failed");
+    return [];
+  }
+}
+
+const fileUpload = async (file) => {
+  console.log(import.meta.url + " : ", file);
+  if (file instanceof File && file.size > 0) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const ext = path.extname(file.name) || ".png"; // default to .png
+    const fileName = `${Date.now()}-${randomUUID()}${ext}`;
+
+    // Ensure uploads folder exists
+    await fs.mkdir(uploadsDir, { recursive: true });
+
+    const filePath = path.join(uploadsDir, fileName);
+    await fs.writeFile(filePath, buffer);
+
+    return `/uploads/${fileName}`; // Public URL
+  } else {
+    console.error(error);
+    throw new Error("Invalid file type or size");
+  }
+};
+
+export const deleteFile = async (filePath) => {
+  const oldFilePath = path.join(uploadsDir, filePath.split("/").pop());
+
+  try {
+    // Check if the file exists before trying to delete it
+    const fileExists = await fs
+      .access(oldFilePath)
+      .then(() => true)
+      .catch(() => false);
+    if (!fileExists) {
+      console.log("File does not exist:", oldFilePath);
+      return;
+    }
+    await fs.unlink(oldFilePath);
+    return;
+  } catch (err) {
+    console.error("Error deleting file:", err);
+  }
+};
 
 export function authMiddleware(required: true, roles: string[] = []) {
   return async (c, next) => {

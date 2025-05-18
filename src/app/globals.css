@@ -39,6 +39,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+body {
+  @apply bg-gray-50 text-gray-800 min-h-screen;
+}
+
 input:placeholder-shown,
 textarea:placeholder-shown {
   color: #6b7280; /* gray-500 */
