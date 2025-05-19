@@ -17,6 +17,7 @@ import {
 import { callApi, callApiForm } from "@/global/func";
 import FileUploader from "@/app/utils/fileUploder";
 import { useRouter } from "next/navigation";
+import PopUp from "@/app/utils/popup";
 
 // Mock API calls (replace with your actual implementations)
 const fetchProblems = async () => {
@@ -90,7 +91,7 @@ const DocumentThumbnail = ({ docUrl }) => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <PopUp isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <div className="bg-white rounded-lg max-w-4xl max-h-full flex flex-col w-full overflow-hidden">
             <div className="p-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="font-medium text-lg">{getFileName(docUrl)}</h3>
@@ -130,7 +131,7 @@ const DocumentThumbnail = ({ docUrl }) => {
               )}
             </div>
           </div>
-        </div>
+        </PopUp>
       )}
     </>
   );

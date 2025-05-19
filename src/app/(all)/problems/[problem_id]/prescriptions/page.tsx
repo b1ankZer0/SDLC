@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { callApi, callApiForm } from "@/global/func";
 import FileUploader from "@/app/utils/fileUploder";
+import PopUp from "@/app/utils/popup";
 
 // const currentUserRole = "user"; // or 'doctor'
 // API functions
@@ -129,7 +130,7 @@ const DocumentViewer = ({ docUrl }) => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <PopUp isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <div className="bg-white rounded-lg max-w-4xl max-h-full flex flex-col w-full overflow-hidden">
             <div className="p-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="font-medium text-lg">{getFileName(docUrl)}</h3>
@@ -169,7 +170,7 @@ const DocumentViewer = ({ docUrl }) => {
               )}
             </div>
           </div>
-        </div>
+        </PopUp>
       )}
     </>
   );
@@ -427,7 +428,7 @@ const PrescriptionPopup = ({ prescription, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <PopUp isOpen={true} onClose={onClose}>
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
         <div className="flex justify-between items-center border-b border-gray-200 p-4">
           <h2 className="text-xl font-semibold text-gray-900">
@@ -534,7 +535,7 @@ const PrescriptionPopup = ({ prescription, onClose }) => {
           </div>
         </div>
       </div>
-    </div>
+    </PopUp>
   );
 };
 
