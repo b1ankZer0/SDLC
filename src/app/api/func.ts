@@ -83,23 +83,34 @@ export async function fileUploadHandler(files, options) {
 
 const fileUpload = async (file) => {
   if (file instanceof File && file.size > 0) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const ext = path.extname(file.name) || ".png"; // default to .png
-    const fileName = `${Date.now()}-${randomUUID()}${ext}`;
-
-    // Ensure uploads folder exists
-    await fs.mkdir(uploadsDir, { recursive: true });
-
-    const filePath = path.join(uploadsDir, fileName);
-    await fs.writeFile(filePath, buffer);
-
-    return `/uploads/${fileName}`; // Public URL
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64String = buffer.toString("base64");
+    return `data:${file.type};base64,${base64String}`;
   } else {
     console.error(error);
     throw new Error("Invalid file type or size");
     return "";
   }
+
+  // if (file instanceof File && file.size > 0) {
+  //   const buffer = Buffer.from(await file.arrayBuffer());
+
+  //   const ext = path.extname(file.name) || ".png"; // default to .png
+  //   const fileName = `${Date.now()}-${randomUUID()}${ext}`;
+
+  //   // Ensure uploads folder exists
+  //   await fs.mkdir(uploadsDir, { recursive: true });
+
+  //   const filePath = path.join(uploadsDir, fileName);
+  //   await fs.writeFile(filePath, buffer);
+
+  //   return `/uploads/${fileName}`; // Public URL
+  // } else {
+  //   console.error(error);
+  //   throw new Error("Invalid file type or size");
+  //   return "";
+  // }
 };
 
 export const deleteFile = async (filePath) => {

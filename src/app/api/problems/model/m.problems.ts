@@ -171,9 +171,9 @@ export const problemsDb = {
       throw new Error(error.message);
     }
   },
-  async getAll() {
+  async getAll(x) {
     try {
-      const users = await problemsModel.find({});
+      const users = await problemsModel.find(x);
       return users;
     } catch (error) {
       throw new Error(error.message);

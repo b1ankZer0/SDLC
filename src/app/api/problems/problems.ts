@@ -12,7 +12,11 @@ import { prescriptionsDb, problemsDb } from "./model/m.problems";
 const app = new Hono();
 
 app.get("/allProblems", authMiddleware(true), async (c) => {
-  return res.ok(c, await problemsDb.getAll(), "Problems fetched successfully");
+  return res.ok(
+    c,
+    await problemsDb.getAll({ ref: c.get("user")._id }),
+    "Problems fetched successfully"
+  );
 });
 
 app.post("/addProblems", authMiddleware(true), async (c) => {

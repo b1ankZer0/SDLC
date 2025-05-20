@@ -164,11 +164,11 @@ app.post("/addRoleReq", authMiddleware(true), async (c) => {
   try {
     const _id = c.get("user")._id;
     const user = await userDb.findById(_id);
-    if (user.role !== "user" || user.address == "Not provided" || !user.phone) {
-      return res.badRequest(
-        c,
-        "You already have a role or plz update user info"
-      );
+    if (user.role !== "user") {
+      return res.badRequest(c, "You already have a role");
+    }
+    if (user.address == "Not provided" || !user.phone) {
+      return res.badRequest(c, "plz update your info");
     }
 
     const oldReq = await roleReqDb.findOne({ ref: _id });

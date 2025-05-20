@@ -17,6 +17,7 @@ import {
   User,
 } from "lucide-react";
 import { callApi } from "@/global/func";
+import Image from "next/image";
 
 // API functions
 const fetchAllUsers = async () => {
@@ -140,7 +141,7 @@ const UserCard = ({ user, onUpdate, currentUserRole }) => {
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center space-x-2">
             {user.logo && user.logo !== "Not provided" ? (
-              <img
+              <Image
                 src={user.logo}
                 alt={user.name}
                 className="h-8 w-8 rounded-full object-cover"

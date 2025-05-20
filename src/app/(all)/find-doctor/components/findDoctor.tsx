@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { callApi } from "@/global/func";
 import PopUp from "@/app/utils/popup";
+import Image from "next/image";
 
 // Fetch doctors based on search term
 const fetchDoctors = async (searchTerm) => {
@@ -138,7 +139,7 @@ const DoctorCard = ({ doctor }) => {
           {/* Doctor's Profile Photo */}
           <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
             {doctor.ref?.logo ? (
-              <img
+              <Image
                 src={doctor.ref.logo}
                 alt={`Dr. ${doctor.knownAs}`}
                 className="w-full h-full object-cover"
