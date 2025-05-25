@@ -11,6 +11,9 @@ app.route("/user", userRoute);
 import problemsRoute from "../problems/problems";
 app.route("/problems", problemsRoute);
 
+import appointmentRoute from "../appointment/appointment";
+app.route("/appointment", appointmentRoute);
+
 import scheduleRoute from "../schedule/schedule";
 app.route("/schedule", scheduleRoute);
 

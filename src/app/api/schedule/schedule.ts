@@ -13,6 +13,14 @@ app.get("/get", authMiddleware(true), async (c) => {
   );
 });
 
+app.get("/getSchedule/:id", authMiddleware(true), async (c) => {
+  return res.ok(
+    c,
+    await scheduleDb.findById(c.req.param("id")),
+    "Schedule fetched successfully"
+  );
+});
+
 app.post("/create", authMiddleware(true, ["doctor"]), async (c) => {
   const body = await c.req.json();
 

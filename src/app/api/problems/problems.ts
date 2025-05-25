@@ -11,6 +11,14 @@ import { prescriptionsDb, problemsDb } from "./model/m.problems";
 
 const app = new Hono();
 
+app.get("/allProblemsOption", authMiddleware(true), async (c) => {
+  return res.ok(
+    c,
+    await problemsDb.getAll({ ref: c.get("user")._id }),
+    "Problems fetched successfully"
+  );
+});
+
 app.get("/allProblems", authMiddleware(true), async (c) => {
   return res.ok(
     c,

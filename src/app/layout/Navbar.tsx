@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/global/hook/useUser";
-import Image from "next/image";
 
 export default function Navbar() {
   const { user, loading, isAuthenticated, logout } = useUser();
@@ -299,9 +298,11 @@ export default function Navbar() {
                 >
                   <div className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white font-medium shadow-md overflow-hidden">
                     {user?.logo && user.logo !== "Not provided" ? (
-                      <Image
+                      <img
                         src={user.logo}
                         alt="Profile"
+                        width={36}
+                        height={36}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -610,9 +611,11 @@ export default function Navbar() {
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white font-medium shadow-md overflow-hidden">
                     {user?.logo && user.logo !== "Not provided" ? (
-                      <Image
+                      <img
                         src={user.logo}
                         alt="Profile"
+                        width={40}
+                        height={40}
                         className="h-full w-full object-cover"
                       />
                     ) : (

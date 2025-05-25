@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
+    userRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Please provide a name"],
+    },
     name: {
       type: String,
       required: [true, "Please provide a name"],
@@ -45,49 +50,43 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+type type = mongoose.InferSchemaType<typeof UserSchema>;
+
 // Check if model exists before compiling
 const userModel = mongoose.models.User || mongoose.model("User", UserSchema);
 
 export const userDb = {
-  async create(userData) {
+  async create(data) {
     try {
-      const user = await userModel.create(userData);
-      return user;
+      const dbRes: type = await userModel.create(data);
+      return dbRes;
     } catch (error) {
       throw new Error(error.message);
     }
   },
   async findById(id) {
     try {
-      const user = await userModel.findById(id);
-      return user;
+      const dbRes: type = await userModel.findById(id);
+      return dbRes;
     } catch (error) {
       throw new Error(error.message);
     }
   },
-  async getLoginUser(getBy) {
+  async find(data = {}) {
     try {
-      const user = await userModel.findOne(getBy);
-      return user;
+      const dbRes: type[] = await userModel.find(data);
+      return dbRes;
     } catch (error) {
       throw new Error(error.message);
     }
   },
-  async getAllUsers() {
+  async updateOne(id, data) {
     try {
-      const users = await userModel.find({});
-      return users;
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  },
-  async updateUser(id, userData) {
-    try {
-      const user = await userModel.findByIdAndUpdate(id, userData, {
+      const dbRes: type = await userModel.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true,
       });
-      return user;
+      return dbRes;
     } catch (error) {
       throw new Error(error.message);
     }

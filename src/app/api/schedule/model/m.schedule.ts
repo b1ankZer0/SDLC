@@ -126,7 +126,7 @@ export const scheduleDb = {
   },
   async findById(id) {
     try {
-      const data = await doctorScheduleModel.findById(id);
+      const data = await doctorScheduleModel.findById(id).populate("ref");
       return data;
     } catch (error) {
       throw new Error(error.message);
@@ -134,7 +134,7 @@ export const scheduleDb = {
   },
   async getOne(getBy) {
     try {
-      const data = await doctorScheduleModel.findOne(getBy);
+      const data = await doctorScheduleModel.findOne(getBy).populate("ref");
       return data;
     } catch (error) {
       throw new Error(error.message);

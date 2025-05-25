@@ -1,6 +1,5 @@
 import { useState } from "react";
 import PopUp from "./popup";
-import Image from "next/image";
 import { File, FileIcon, FileText, X } from "lucide-react";
 
 export const ShowFileInPopUp = ({ docUrl }) => {
@@ -32,7 +31,7 @@ export const ShowFileInPopUp = ({ docUrl }) => {
         onClick={() => setIsModalOpen(true)}
       >
         {isImage(docUrl) ? (
-          <Image
+          <img
             src={docUrl}
             alt="Document preview"
             className="w-full h-full object-cover"
@@ -66,7 +65,7 @@ export const ShowFileInPopUp = ({ docUrl }) => {
             </div>
             <div className="flex-1 overflow-auto p-4 flex items-center justify-center min-h-[300px]">
               {isImage(docUrl) ? (
-                <Image
+                <img
                   src={docUrl}
                   alt="Document preview"
                   className="max-w-full max-h-full object-contain"

@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useState, useRef } from "react";
 
 export default function FileUploader({
@@ -136,7 +135,7 @@ export default function FileUploader({
                     style={{ width: "80px", height: "80px" }}
                   >
                     {file.type.startsWith("image/") ? (
-                      <Image
+                      <img
                         src={file.preview}
                         alt={file.name}
                         className="w-14 h-14 object-cover"
@@ -217,7 +216,7 @@ export default function FileUploader({
             </div>
             <div className="flex items-center justify-center min-h-64">
               {viewFile.type.startsWith("image/") ? (
-                <Image
+                <img
                   src={viewFile.preview}
                   alt={viewFile.name}
                   className="max-w-full max-h-96 object-contain"

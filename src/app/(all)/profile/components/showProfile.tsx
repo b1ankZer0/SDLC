@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { formatDate } from "@/app/utils/helpers";
-import Image from "next/image";
 
 export default function ShowProfile({ user }) {
   return (
     <div>
       <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <Image
+          <img
             src={user.logo}
             alt="Profile"
             className="w-16 h-16 rounded-full object-cover border"

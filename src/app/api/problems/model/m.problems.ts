@@ -67,6 +67,11 @@ const prescriptionsSchema = new mongoose.Schema(
             type: String,
             required: [true, "Please provide a frequency"],
           },
+          duration: {
+            type: String,
+            required: [true, "Please provide a duration"],
+            default: "Not provided",
+          },
         },
       ],
     },
@@ -173,7 +178,17 @@ export const problemsDb = {
   },
   async getAll(x) {
     try {
-      const users = await problemsModel.find(x);
+      const users = await problemsModel.find(x).sort({ updatedAt: -1 });
+      return users;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async getAllOption(x) {
+    try {
+      const users = await problemsModel
+        .find(x, "_id, title,")
+        .sort({ title: 1 });
       return users;
     } catch (error) {
       throw new Error(error.message);

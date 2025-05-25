@@ -21,6 +21,7 @@ import {
 import { callApi } from "@/global/func";
 import PopUp from "@/app/utils/popup";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 // Fetch doctors based on search term
 const fetchDoctors = async (searchTerm) => {
@@ -98,6 +99,8 @@ const DoctorCard = ({ doctor }) => {
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
+  const router = useRouter();
+
   // Calculate available dates (next 14 days that match doctor's schedule)
   const getAvailableDates = () => {
     const dates = [];
@@ -132,6 +135,10 @@ const DoctorCard = ({ doctor }) => {
     doctor.willSeeFor
   );
 
+  const handleBookAppointment = () => {
+    router.push(`/Book-Appointment/${doctor._id}`);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="p-4">
@@ -139,7 +146,7 @@ const DoctorCard = ({ doctor }) => {
           {/* Doctor's Profile Photo */}
           <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
             {doctor.ref?.logo ? (
-              <Image
+              <img
                 src={doctor.ref.logo}
                 alt={`Dr. ${doctor.knownAs}`}
                 className="w-full h-full object-cover"
@@ -216,7 +223,7 @@ const DoctorCard = ({ doctor }) => {
           </button>
 
           <button
-            onClick={() => setShowAppointmentModal(true)}
+            onClick={handleBookAppointment}
             className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium transition-colors"
           >
             Book Appointment
@@ -263,249 +270,6 @@ const DoctorCard = ({ doctor }) => {
           </div>
         </div>
       )}
-
-      {/* Appointment Booking Modal */}
-      <PopUp
-        isOpen={showAppointmentModal}
-        onClose={() => setShowAppointmentModal(false)}
-      >
-        <div className="bg-white rounded-lg max-w-md w-full overflow-hidden min-h-[420px] min-w-[400px]">
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="font-medium text-lg">
-              Book Appointment with Dr. {doctor.knownAs}
-            </h3>
-            <button
-              onClick={() => setShowAppointmentModal(false)}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className="p-4">
-            {/* Date Dropdown */}
-            <div className="mb-4 relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Date
-              </label>
-              <button
-                onClick={() => setShowDateDropdown(!showDateDropdown)}
-                className="w-full p-2 text-left text-sm rounded-md border border-gray-300 hover:border-blue-300"
-              >
-                {selectedDate || "Choose a date"}
-              </button>
-
-              {showDateDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                  {availableDates.slice(0, 6).map((date, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setSelectedDate(date.toISOString().split("T")[0]);
-                        setShowDateDropdown(false);
-                      }}
-                      className="w-full p-2 text-sm text-left hover:bg-blue-50"
-                    >
-                      {formatDate(date)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Time Dropdown */}
-            {selectedDate && (
-              <div className="mb-4 relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Time
-                </label>
-                <button
-                  onClick={() => setShowTimeDropdown(!showTimeDropdown)}
-                  className="w-full p-2 text-left text-sm rounded-md border border-gray-300 hover:border-blue-300"
-                >
-                  {selectedTime || "Choose a time"}
-                </button>
-
-                {showTimeDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                    {timeSlots.map((time, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSelectedTime(time);
-                          setShowTimeDropdown(false);
-                        }}
-                        className="w-full p-2 text-sm text-left hover:bg-blue-50"
-                      >
-                        {formatTime(time)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <button
-                className={`w-full py-2 rounded-md font-medium ${
-                  selectedDate && selectedTime
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                }`}
-                disabled={!selectedDate || !selectedTime}
-              >
-                Confirm Appointment
-              </button>
-            </div>
-          </div>
-        </div>
-      </PopUp>
-
-      {/* {showAppointmentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full overflow-hidden">
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="font-medium text-lg">
-                Book Appointment with Dr. {doctor.knownAs}
-              </h3>
-              <button
-                onClick={() => setShowAppointmentModal(false)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="p-4">
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                  Available Dates
-                </h4>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {availableDates.slice(0, 7).map((date, index) => (
-                    <div
-                      key={index}
-                      className={`relative p-3 rounded-md cursor-pointer ${
-                        selectedDate === date.toISOString().split("T")[0]
-                          ? "bg-blue-100"
-                          : "hover:bg-gray-50"
-                      }`}
-                      onClick={() =>
-                        setSelectedDate(date.toISOString().split("T")[0])
-                      }
-                    >
-                      <div
-                        className={`text-center w-10 ${
-                          selectedDate === date.toISOString().split("T")[0]
-                            ? "text-blue-700"
-                            : "text-gray-800"
-                        }`}
-                      >
-                        <div className="text-xs font-medium mb-1">
-                          {new Intl.DateTimeFormat("en-US", {
-                            weekday: "short",
-                          }).format(date)}
-                        </div>
-                        <div className="text-lg font-medium leading-none mb-1">
-                          {date.getDate()}
-                        </div>
-                        <div className="text-xs leading-none">
-                          {new Intl.DateTimeFormat("en-US", {
-                            month: "short",
-                          }).format(date)}
-                        </div>
-                      </div>
-                      {selectedDate === date.toISOString().split("T")[0] && (
-                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-b-md"></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {availableDates.length > 7 && (
-                  <button className="text-sm text-blue-600 hover:text-blue-800 mt-1">
-                    Show more dates
-                  </button>
-                )}
-              </div>
-
-              {selectedDate && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Available Time Slots
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {timeSlots.map((time, index) => (
-                      <div
-                        key={index}
-                        className={`py-2 px-3 rounded-md cursor-pointer text-center ${
-                          selectedTime === time
-                            ? "bg-blue-500 text-white"
-                            : "border border-gray-200 hover:border-blue-300 text-gray-700"
-                        }`}
-                        onClick={() => setSelectedTime(time)}
-                      >
-                        <span className="text-sm font-medium">
-                          {formatTime(time)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedDate && selectedTime && (
-                <div className="bg-blue-50 p-3 rounded-md mb-4">
-                  <h4 className="text-sm font-medium text-blue-700 mb-2">
-                    Appointment Summary
-                  </h4>
-                  <div className="text-sm text-gray-700">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                        <span>
-                          {new Intl.DateTimeFormat("en-US", {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }).format(new Date(selectedDate))}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 text-gray-500 mr-2" />
-                        <span>{formatTime(selectedTime)}</span>
-                      </div>
-
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 text-gray-500 mr-2" />
-                        <span>Dr. {doctor.knownAs}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
-                        <span>${doctor.chargeFee}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-2">
-                <button
-                  className={`w-full py-3 rounded-md font-medium ${
-                    selectedDate && selectedTime
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  }`}
-                  disabled={!selectedDate || !selectedTime}
-                >
-                  Confirm Appointment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 };

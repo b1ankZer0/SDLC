@@ -58,7 +58,10 @@ export async function logout(c) {
   await deleteCookie(c, "authToken");
 }
 
-export async function fileUploadHandler(files, options) {
+export async function fileUploadHandler(
+  files,
+  options: { numOfFiles?: number }
+) {
   try {
     const links = [];
     if (files instanceof Array) {

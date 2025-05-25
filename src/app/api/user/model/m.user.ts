@@ -62,6 +62,7 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+type userType = mongoose.InferSchemaType<typeof UserSchema>;
 // Check if model exists before compiling
 const userModel = mongoose.models.User || mongoose.model("User", UserSchema);
 
@@ -115,7 +116,7 @@ export const userDb = {
     password: string;
   }) {
     try {
-      const user = await userModel.create(userData);
+      const user: userType = await userModel.create(userData);
       return user;
     } catch (error) {
       throw new Error(error.message);
@@ -123,7 +124,7 @@ export const userDb = {
   },
   async findById(id) {
     try {
-      const user = await userModel.findById(id);
+      const user: userType = await userModel.findById(id);
       return user;
     } catch (error) {
       throw new Error(error.message);
@@ -131,7 +132,7 @@ export const userDb = {
   },
   async getLoginUser(getBy) {
     try {
-      const user = await userModel.findOne(getBy);
+      const user: userType = await userModel.findOne(getBy);
       return user;
     } catch (error) {
       throw new Error(error.message);
@@ -139,7 +140,7 @@ export const userDb = {
   },
   async getAllUsers() {
     try {
-      const users = await userModel.find({});
+      const users: userType[] = await userModel.find({});
       return users;
     } catch (error) {
       throw new Error(error.message);
@@ -147,7 +148,7 @@ export const userDb = {
   },
   async updateUser(id, userData) {
     try {
-      const user = await userModel.findByIdAndUpdate(id, userData, {
+      const user: userType = await userModel.findByIdAndUpdate(id, userData, {
         new: true,
         runValidators: true,
       });
