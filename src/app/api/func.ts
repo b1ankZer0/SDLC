@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs/promises";
 import { randomUUID } from "crypto";
 import { error } from "console";
+import { userDb } from "./user/model/m.user";
 
 const uploadsDir = path.join(process.cwd(), "public", "uploads");
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -20,7 +21,7 @@ export async function createJwt(c, user) {
       userName: user.userName,
       email: user.email,
       role: user.role,
-      logo: user.logo,
+      // logo: user.logo,
     };
     const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "1d",
@@ -48,7 +49,10 @@ export async function verifyJwt(c) {
       return null;
     }
 
-    return jwt.verify(token, JWT_SECRET);
+    const data = jwt.verify(token, JWT_SECRET);
+    const user = await userDb.findById(data._id);
+    data.logo = user.logo;
+    return data;
   } catch (err) {
     console.error("JWT verification failed:", err);
     return null;

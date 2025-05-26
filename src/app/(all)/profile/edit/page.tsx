@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import { callApi, callApiForm } from "@/global/func";
-import Image from "next/image";
 
 type UserProfile = {
   name: string;
@@ -129,7 +128,7 @@ export default function EditProfilePage() {
               {/* Profile Logo Upload */}
               <div className="flex items-center gap-4">
                 {logoPreview && (
-                  <Image
+                  <img
                     src={logoPreview}
                     alt="Profile Preview"
                     className="h-24 w-24 rounded-full object-cover"

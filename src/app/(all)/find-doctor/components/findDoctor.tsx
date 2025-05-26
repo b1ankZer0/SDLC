@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { callApi } from "@/global/func";
 import PopUp from "@/app/utils/popup";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 // Fetch doctors based on search term

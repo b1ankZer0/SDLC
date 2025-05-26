@@ -141,7 +141,7 @@ const UserCard = ({ user, onUpdate, currentUserRole }) => {
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center space-x-2">
             {user.logo && user.logo !== "Not provided" ? (
-              <Image
+              <img
                 src={user.logo}
                 alt={user.name}
                 className="h-8 w-8 rounded-full object-cover"

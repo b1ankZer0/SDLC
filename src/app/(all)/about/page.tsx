@@ -13,37 +13,6 @@ import {
 const AboutUs = () => {
   const [activeTab, setActiveTab] = useState("mission");
 
-  // const teamMembers = [
-  //   {
-  //     name: "MAS ASHIKUR RAHMAN HRIDOY",
-  //     role: "Project Lead",
-  //     image: "/api/placeholder/400/400",
-  //     github: "https://github.com/b1ankZer0",
-  //     bio: "Full-stack developer with 2+ years of experience in https://ticketmet.com/home.",
-  //   },
-  //   // {
-  //   //   name: "Alex Johnson",
-  //   //   role: "Core Developer",
-  //   //   image: "/api/placeholder/400/400",
-  //   //   github: "https://github.com/alexjohnson",
-  //   //   bio: "Backend specialist focused on performance optimization and system architecture.",
-  //   // },
-  //   // {
-  //   //   name: "Maria Garcia",
-  //   //   role: "UI/UX Designer",
-  //   //   image: "/api/placeholder/400/400",
-  //   //   github: "https://github.com/mariagarcia",
-  //   //   bio: "Creating beautiful and intuitive user experiences with accessibility in mind.",
-  //   // },
-  //   // {
-  //   //   name: "David Kim",
-  //   //   role: "DevOps Engineer",
-  //   //   image: "/api/placeholder/400/400",
-  //   //   github: "https://github.com/davidkim",
-  //   //   bio: "Ensuring smooth deployments and maintaining infrastructure reliability.",
-  //   // },
-  // ];
-
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}

@@ -142,8 +142,8 @@ app.patch("/profile", authMiddleware(true), async (c) => {
   const logoFile = formData.get("logo");
   if (logoFile) {
     const links = await fileUploadHandler(logoFile, { numOfFiles: 1 });
-    const oldUser = await userDb.findById(userId);
-    deleteFile(oldUser.logo);
+    // const oldUser = await userDb.findById(userId);
+    // deleteFile(oldUser.logo);
     if (links.length > 0) {
       updateData.logo = links[0];
     }

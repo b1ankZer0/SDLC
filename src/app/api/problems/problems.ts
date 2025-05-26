@@ -152,11 +152,11 @@ app.post("/:problem_id/addPrescriptions", authMiddleware(true), async (c) => {
 
     return res.ok(c, prescriptions, "Prescriptions added successfully");
   } catch (error) {
-    if (links.length > 0) {
-      links.forEach((link) => {
-        deleteFile(link);
-      });
-    }
+    // if (links.length > 0) {
+    //   links.forEach((link) => {
+    //     deleteFile(link);
+    //   });
+    // }
     myError(c, error);
   }
 });
