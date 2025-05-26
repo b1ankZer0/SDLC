@@ -40,8 +40,16 @@ const appointmentSchema = new mongoose.Schema(
         },
         schedule: {
           type: String,
-          required: [true, "Please provide a schedule"],
+          required: [true, "Please provide a date"],
         },
+        // date: {
+        //   type: String,
+        //   required: [true, "Please provide a date"],
+        // },
+        // time: {
+        //   type: String,
+        //   required: [true, "Please provide a time"],
+        // },
         reason: {
           type: String,
           default: "Not provided",
@@ -84,7 +92,67 @@ export const appointmentDb = {
     try {
       const dbRes: type[] = await appointmentModel
         .find(data)
-        .populate("scheduleRef doctorRef");
+        .populate({ path: "doctorRef", select: "_id logo" })
+        .populate("scheduleRef")
+        .lean()
+        .sort({ createdAt: -1 });
+      return dbRes;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async findForDoc(data = {}) {
+    try {
+      const dbRes: type[] = await appointmentModel
+        .find({ ...data, status: { $in: ["request", "accept", "reSchedule"] } })
+        .populate("scheduleRef userRef")
+        .lean()
+        .sort({ createdAt: 1 });
+      return dbRes;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async findCk(data) {
+    try {
+      const dbRes: type[] = await appointmentModel.findOne({
+        userRef: data.userRef,
+        scheduleRef: data.scheduleRef,
+        status: { $in: ["request", "accept", "reSchedule"] },
+      });
+
+      if (dbRes) {
+        // throw new Error(
+        //   "You already have an appointment request to this doctor."
+        // );
+        return {
+          error: "You already have an appointment request to this doctor.",
+        };
+      }
+
+      const dbRes2: type[] = await appointmentModel.find({
+        scheduleRef: data.scheduleRef,
+        status: { $in: ["request", "accept", "reSchedule"] },
+        ["scheduleReqBy.schedule"]: data.scheduleReqBy[0].schedule,
+      });
+
+      if (dbRes2.length > 0) {
+        return { error: "There is already an appointment at this time." };
+      }
+
+      return { success: true };
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async findOne(data = {}) {
+    try {
+      const dbRes: type[] = await appointmentModel
+        .findOne(data)
+        .populate({ path: "doctorRef", select: "_id logo" })
+        .populate("scheduleRef")
+        .lean();
+
       return dbRes;
     } catch (error) {
       throw new Error(error.message);
@@ -102,3 +170,26 @@ export const appointmentDb = {
     }
   },
 };
+
+// const appointment_dateSchema = new mongoose.Schema(
+//   {
+//     ref: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Appointment",
+//       required: true,
+//     },
+//     date: {
+//       type: String,
+//       required: [true, "Please provide a schedule"],
+//     },
+//     available_time: [String],
+//     acceptedDate: Date,
+//   },
+//   { timestamps: true }
+// );
+
+// type typeDate = mongoose.InferSchemaType<typeof appointment_dateSchema>;
+// // Check if model exists before compiling
+// const appointment_dateModel =
+//   mongoose.models.Appointment_date ||
+//   mongoose.model("Appointment_data", appointment_dateSchema);

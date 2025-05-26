@@ -8,6 +8,7 @@ import {
   deleteFile,
 } from "@/app/api/func";
 import { prescriptionsDb, problemsDb } from "./model/m.problems";
+import { appointmentDb } from "../appointment/model/m.appointment";
 
 const app = new Hono();
 
@@ -64,7 +65,15 @@ app.get("/:problem_id/getAllPrescriptions", authMiddleware(true), async (c) => {
     const problemId = c.req.param("problem_id");
     const problem = await problemsDb.findOne({ _id: problemId, ref: user._id });
     if (!problem) {
-      return res.notFound(c, "No problem found");
+      const access = await appointmentDb.findOne({
+        doctorRef: user._id,
+        problemRef: problemId,
+        problemAccessToDoctor: true,
+        status: { $nin: ["reject", "cancel"] }, // Correct operator
+      });
+      if (!access) {
+        return res.notFound(c, "No problem found");
+      }
     }
     const prescriptions = await prescriptionsDb.getAll({ ref: problemId });
 
@@ -101,9 +110,17 @@ app.post("/:problem_id/addPrescriptions", authMiddleware(true), async (c) => {
   try {
     const user = c.get("user");
     const problemId = c.req.param("problem_id");
-    const problem = await problemsDb.findOne({ _id: problemId, ref: user._id });
+    let access = null;
+    let problem = await problemsDb.findOne({ _id: problemId, ref: user._id });
     if (!problem) {
-      return res.notFound(c, "No problem found");
+      access = await appointmentDb.findOne({
+        doctorRef: user._id,
+        problemRef: problemId,
+        problemAccessToDoctor: true,
+        status: { $nin: ["reject", "cancel"] }, // Correct operator
+      });
+      if (!access) return res.notFound(c, "No problem found");
+      problem = await problemsDb.findOne({ _id: problemId });
     }
     const formData = await c.req.formData();
     const title = formData.get("title");
@@ -129,6 +146,7 @@ app.post("/:problem_id/addPrescriptions", authMiddleware(true), async (c) => {
       description,
       medication: medication || [],
       givenDoc: links,
+      doctorAdded: access ? true : false,
       addedBy: user._id,
     });
 

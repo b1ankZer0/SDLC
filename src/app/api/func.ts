@@ -33,6 +33,7 @@ export async function createJwt(c, user) {
       path: "/",
       maxAge: 60 * 60 * 24 * 1, // 1 day in seconds
     });
+    console.log(import.meta.url + " : ", "JWT created for user:");
   } catch (err) {
     console.error("Error creating JWT:", err);
     throw new Error("Failed to create JWT");
@@ -184,7 +185,10 @@ export function myError(c, err) {
   }
 
   console.error("Error handler:", err);
-  return res.error(c, "Internal server error");
+  return c.json(
+    { error: true, message: err.message || "Internal server error", data: {} },
+    500
+  );
 }
 
 export const res = {

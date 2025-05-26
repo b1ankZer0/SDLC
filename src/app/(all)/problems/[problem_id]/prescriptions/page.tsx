@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
@@ -737,7 +737,8 @@ export default function PrescriptionsManagement({ params }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPrescription, setEditingPrescription] = useState(null);
-  const problem_id = params?.problem_id;
+  const problem_id = use(params).problem_id;
+  // const problem_id = params?.problem_id;
 
   // Current user role - would typically come from auth context
   // This is a placeholder, you would replace this with actual auth data

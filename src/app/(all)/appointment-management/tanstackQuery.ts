@@ -68,6 +68,36 @@ export const getAppointmentById = async (id: string): Promise<Appointment> => {
   }
 };
 
+export const cancelAppointment = async (appointmentId: string) => {
+  try {
+    const response = await callApi(
+      `/appointment/cancel-appointment/${appointmentId}`,
+      "PATCH"
+    );
+    if (response.error) {
+      throw new Error(response.message || "Failed to fetch appointment");
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const doctorResponse = async (appointmentId: string, status: string) => {
+  try {
+    const response = await callApi(
+      `/appointment/doctor-res/${appointmentId}?status=${status}`,
+      "PATCH"
+    );
+    if (response.error) {
+      throw new Error(response.message || "Failed to fetch appointment");
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Query Keys
 export const appointmentKeys = {
   all: ["appointments"] as const,
