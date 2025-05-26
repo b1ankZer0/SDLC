@@ -332,7 +332,7 @@ export default function AppointmentList({
                                 {appointment.userRef.name}
                               </h3>
                               <p className="text-gray-600 mb-2">
-                                {appointment.scheduleRef?.gender ||
+                                {appointment.userRef?.gender ||
                                   "General Practitioner"}
                               </p>
                             </div>
