@@ -77,7 +77,9 @@ app.post("/add-appointment", authMiddleware(false), async (c) => {
   try {
     const body = await c.req.json();
     body.userRef = c.get("user")._id; // Ensure userRef is set to the current user's ID
-
+    if (body.userRef == body.doctorRef) {
+      return res.badRequest(c, "You cannot book an appointment with yourself");
+    }
     const ck = await isValidTime(
       body.doctorRef,
       body.scheduleReqBy[0].schedule

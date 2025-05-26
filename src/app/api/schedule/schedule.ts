@@ -44,7 +44,7 @@ app.put("/update", authMiddleware(true), async (c) => {
   };
   return res.ok(
     c,
-    await scheduleDb.updateById(c.get("user")._id, data),
+    await scheduleDb.updateOne({ ref: c.get("user")._id }, data),
     "Schedule updated successfully"
   );
 });

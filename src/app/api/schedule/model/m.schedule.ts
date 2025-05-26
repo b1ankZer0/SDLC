@@ -188,4 +188,15 @@ export const scheduleDb = {
       throw new Error(error.message);
     }
   },
+  async updateOne(find, Data) {
+    try {
+      const data = await doctorScheduleModel.findOneAndUpdate(find, Data, {
+        new: true,
+        runValidators: true,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
 };

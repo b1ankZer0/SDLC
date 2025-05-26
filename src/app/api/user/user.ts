@@ -70,8 +70,6 @@ app.post("/login", async (c) => {
       return res.notFound(c, "User not found");
     }
 
-    console.log(import.meta.url + " : ", user);
-
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.badRequest(c, "Invalid password");

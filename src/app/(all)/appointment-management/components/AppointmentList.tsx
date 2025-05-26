@@ -316,7 +316,7 @@ export default function AppointmentList({
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
-                          {appointment.doctorRef ? (
+                          {appointment.doctorRef._id ? (
                             <div>
                               <h3 className="text-xl font-semibold text-gray-900 mb-1">
                                 Dr. {appointment.scheduleRef.knownAs}

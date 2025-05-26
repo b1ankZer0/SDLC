@@ -34,7 +34,6 @@ export async function createJwt(c, user) {
       path: "/",
       maxAge: 60 * 60 * 24 * 1, // 1 day in seconds
     });
-    console.log(import.meta.url + " : ", "JWT created for user:");
   } catch (err) {
     console.error("Error creating JWT:", err);
     throw new Error("Failed to create JWT");
