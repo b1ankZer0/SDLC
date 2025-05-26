@@ -111,6 +111,7 @@ export const userDb = {
   async create(userData: {
     name: string;
     email: string;
+    userName: string;
     gender: string;
     dateOfBirth: string;
     password: string;
@@ -141,6 +142,14 @@ export const userDb = {
   async getAllUsers() {
     try {
       const users: userType[] = await userModel.find({});
+      return users;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async count(data = {}) {
+    try {
+      const users: number = await userModel.countDocuments(data);
       return users;
     } catch (error) {
       throw new Error(error.message);

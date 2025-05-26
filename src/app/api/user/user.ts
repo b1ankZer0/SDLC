@@ -18,6 +18,11 @@ app.get("/all", authMiddleware(true, ["sudo", "admin"]), async (c) => {
   return res.ok(c, await userDb.getAllUsers(), "User verified successfully");
 });
 
+const makeUserName = async () => {
+  const userCount = await userDb.count();
+  return `HS${userCount + 1}`;
+};
+
 app.post("/reg", async (c) => {
   try {
     // const body = await c.req.parseBody({ dot: true });
@@ -28,12 +33,14 @@ app.post("/reg", async (c) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const userName: string = await makeUserName();
 
     const user = await userDb.create({
       name,
       email,
-      dateOfBirth,
+      userName,
       gender,
+      dateOfBirth,
       password: hashedPassword,
     });
     await createJwt(c, user);
