@@ -6,6 +6,7 @@ import fs from "fs/promises";
 import { randomUUID } from "crypto";
 import { error } from "console";
 import { userDb } from "./user/model/m.user";
+import { notificationDb } from "./notification/model/m.notification";
 
 const uploadsDir = path.join(process.cwd(), "public", "uploads");
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -60,6 +61,20 @@ export async function verifyJwt(c) {
 
 export async function logout(c) {
   await deleteCookie(c, "authToken");
+}
+
+export async function addNotification(
+  userRef: string,
+  title: string,
+  description: string,
+  goto: string = ""
+) {
+  const dbRes = await notificationDb.create({
+    userRef,
+    title,
+    description,
+    goto,
+  });
 }
 
 export async function fileUploadHandler(

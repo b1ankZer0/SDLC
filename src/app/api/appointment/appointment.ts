@@ -6,9 +6,9 @@ import {
   fileUploadHandler,
   deleteFile,
   myError,
+  addNotification,
 } from "../func";
 import { scheduleDb } from "../schedule/model/m.schedule";
-import { error } from "console";
 
 const app = new Hono();
 
@@ -52,8 +52,14 @@ app.patch("doctor-res/:id", authMiddleware(true, ["doctor"]), async (c) => {
       { status }
     );
     if (!appointment) {
-      return res.notFound(c, "Appointment not found or access denied");
+      return res.notFound(c, "Appointment not found");
     }
+    addNotification(
+      user._id,
+      "appointment " + status,
+      "appointment " + status + " by " + user.name,
+      "/appointment-management"
+    );
     return res.ok(c, appointment, "Appointment updated successfully");
   } catch (error) {
     myError(c, error);
@@ -93,7 +99,12 @@ app.post("/add-appointment", authMiddleware(false), async (c) => {
     }
 
     const appointment = await appointmentDb.create(body);
-
+    addNotification(
+      body.doctorRef,
+      "New appointment request",
+      "You have a new appointment request from " + c.get("user").name,
+      "/appointment-management"
+    );
     return res.ok(c, appointment, "appointment created successfully");
   } catch (error) {
     myError(c, error);
@@ -114,8 +125,15 @@ app.patch("/cancel-appointment/:id", authMiddleware(true), async (c) => {
       { status: "cancel" }
     );
     if (!appointment) {
-      return res.notFound(c, "Appointment not found or access denied");
+      return res.notFound(c, "Appointment not found");
     }
+
+    addNotification(
+      `${appointment.doctorRef}`,
+      "appointment canceled",
+      "appointment canceled by " + user.name,
+      "/appointment-management"
+    );
 
     return res.ok(c, appointment, "Appointment updated successfully");
   } catch (error) {

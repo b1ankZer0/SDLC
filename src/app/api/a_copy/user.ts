@@ -9,11 +9,12 @@ import {
 } from "../func";
 
 const app = new Hono();
+const module = "user ";
 
 app.get("/all-", authMiddleware(false), async (c) => {
   try {
-    const users = await userDb.find();
-    return res.ok(c, users, "fetched successfully");
+    const dbRes = await userDb.find();
+    return res.ok(c, dbRes, module + "fetched successfully");
   } catch (error) {
     myError(c, error);
   }
@@ -21,11 +22,11 @@ app.get("/all-", authMiddleware(false), async (c) => {
 app.get("/:id", authMiddleware(false), async (c) => {
   try {
     const id = c.req.param("id");
-    const user = await userDb.findById(id);
-    if (!user) {
-      return res.notFound(c, "User not found");
+    const dbRes = await userDb.findById(id);
+    if (!dbRes) {
+      return res.notFound(c, module + "not found");
     }
-    return res.ok(c, user, "User fetched successfully");
+    return res.ok(c, dbRes, module + "fetched successfully");
   } catch (error) {
     myError(c, error);
   }
@@ -33,8 +34,8 @@ app.get("/:id", authMiddleware(false), async (c) => {
 app.post("/add-", authMiddleware(false), async (c) => {
   try {
     const body = await c.req.json();
-    const user = await userDb.create(body);
-    return res.created(c, user, "User created successfully");
+    const dbRes = await userDb.create(body);
+    return res.created(c, dbRes, module + "created successfully");
   } catch (error) {
     myError(c, error);
   }
