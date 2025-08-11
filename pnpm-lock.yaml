@@ -27,8 +27,8 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1
       hono:
-        specifier: ^4.7.8
-        version: 4.7.8
+        specifier: ^4.9.0
+        version: 4.9.0
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
@@ -1282,8 +1282,8 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  hono@4.7.8:
-    resolution: {integrity: sha512-PCibtFdxa7/Ldud9yddl1G81GjYaeMYYTq4ywSaNsYbB1Lug4mwtOMJf2WXykL0pntYwmpRJeOI3NmoDgD+Jxw==}
+  hono@4.9.0:
+    resolution: {integrity: sha512-JAUc4Sqi3lhby2imRL/67LMcJFKiCu7ZKghM7iwvltVZzxEC5bVJCsAa4NTnSfmWGb+N2eOVtFE586R+K3fejA==}
     engines: {node: '>=16.9.0'}
 
   http-errors@2.0.0:
@@ -3571,7 +3571,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hono@4.7.8: {}
+  hono@4.9.0: {}
 
   http-errors@2.0.0:
     dependencies:
