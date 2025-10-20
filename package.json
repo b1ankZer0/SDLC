@@ -15,7 +15,7 @@
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
     "dropdown-menu": "^0.1.1",
-    "hono": "^4.7.8",
+    "hono": "^4.10.1",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.510.0",
