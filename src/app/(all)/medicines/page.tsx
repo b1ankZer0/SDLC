@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useUser } from "@/global/hook/useUser";
 import {
   Search,
   Filter,
@@ -15,6 +17,8 @@ import {
   Syringe,
   Wind,
   Package,
+  PlusCircle,
+  Newspaper,
 } from "lucide-react";
 import { callApi } from "@/global/func";
 
@@ -41,7 +45,13 @@ const getAllMedicines = async (): Promise<Medicine[]> => {
   const response = await callApi("/medicine/all-medicine", "GET");
   if (response.error)
     throw new Error(response.message || "Failed to fetch medicines");
-  return response.data;
+  const raw = response.data as any;
+  const list = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.data)
+      ? raw.data
+      : [];
+  return list as Medicine[];
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -77,6 +87,7 @@ const FORM_FILTERS = [
 
 export default function MedicinesPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [search, setSearch] = useState("");
   const [formFilter, setFormFilter] = useState("all");
   const [prescriptionFilter, setPrescriptionFilter] = useState<
@@ -112,18 +123,45 @@ export default function MedicinesPage() {
     <div className="min-h-screen bg-gray-50">
       {/* ── Page Header ── */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 bg-blue-600 rounded-xl">
-              <Pill className="h-5 w-5 text-white" />
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="p-2 bg-blue-600 rounded-xl">
+                  <Pill className="h-5 w-5 text-white" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Medicine Database
+                </h1>
+              </div>
+              <p className="text-gray-500 ml-12 text-sm">
+                Browse and search our comprehensive medicine reference library
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Medicine Database
-            </h1>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              {/* Add Medicine — all logged-in users */}
+              {user && (
+                <Link
+                  href="/medicines/add"
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <PlusCircle className="h-4 w-4" /> Add Medicine
+                </Link>
+              )}
+
+              {/* Manage News — sudo / admin only */}
+              {(user?.role === "sudo" || user?.role === "admin") && (
+                <Link
+                  href="/medicines/manage-news"
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Newspaper className="h-4 w-4" /> Manage News
+                </Link>
+              )}
+            </div>
           </div>
-          <p className="text-gray-500 ml-12">
-            Browse and search our comprehensive medicine reference library
-          </p>
         </div>
       </div>
 

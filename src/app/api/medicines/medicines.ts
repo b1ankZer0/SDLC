@@ -66,6 +66,22 @@ app.put(
   },
 );
 
+app.get(
+  "/all-news/checking",
+  authMiddleware(true, ["sudo", "admin"]),
+  async (c) => {
+    try {
+      const dbRes = await newsDb.find({ status: "checking" });
+      if (!dbRes) {
+        return res.notFound(c, "news " + "not found");
+      }
+      return res.ok(c, dbRes, "news " + "updated successfully");
+    } catch (error) {
+      myError(c, error);
+    }
+  },
+);
+
 app.get("/all-news/:id", authMiddleware(false), async (c) => {
   try {
     const id = c.req.param("id");
