@@ -9,7 +9,8 @@ import { userDb } from "./user/model/m.user";
 import { notificationDb } from "./notification/model/m.notification";
 
 const uploadsDir = path.join(process.cwd(), "public", "uploads");
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET =
+  process.env.JWT_SECRET || "arunasanythingyouwantbutkeepitsecret";
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
@@ -67,7 +68,7 @@ export async function addNotification(
   userRef: string,
   title: string,
   description: string,
-  goto: string = ""
+  goto: string = "",
 ) {
   const dbRes = await notificationDb.create({
     userRef,
@@ -79,7 +80,7 @@ export async function addNotification(
 
 export async function fileUploadHandler(
   files,
-  options: { numOfFiles?: number }
+  options: { numOfFiles?: number },
 ) {
   try {
     const links = [];
@@ -91,7 +92,7 @@ export async function fileUploadHandler(
       await Promise.all(
         files.map(async (file) => {
           links.push(await fileUpload(file));
-        })
+        }),
       );
     } else links.push(await fileUpload(files));
 
@@ -186,7 +187,7 @@ export function authMiddleware(required: true, roles: string[] = []) {
       if (err instanceof HTTPException) {
         return c.json(
           { error: true, message: err.message, data: {} },
-          err.status
+          err.status,
         );
       }
 
@@ -205,7 +206,7 @@ export function myError(c, err) {
   console.error("Error handler:", err);
   return c.json(
     { error: true, message: err.message || "Internal server error", data: {} },
-    500
+    500,
   );
 }
 

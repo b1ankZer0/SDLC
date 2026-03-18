@@ -236,6 +236,33 @@ export default function Navbar() {
                           </div>
                         </div>
                       </Link>
+                      <Link
+                        href="/medicines"
+                        onClick={handleDropdownItemClick}
+                        className="group flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 transition-all duration-200 rounded-lg mx-2"
+                      >
+                        <div className="mr-3 p-1.5 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors duration-200">
+                          <svg
+                            className="h-4 w-4 text-blue-600"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            {/* Pill Icon Path */}
+                            <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+                            <path d="m8.5 8.5 7 7" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="font-medium">Medicines</div>
+                          <div className="text-xs text-gray-500">
+                            Search for medication and drug details
+                          </div>
+                        </div>
+                      </Link>
 
                       {/* Appointments - Only for logged in users */}
                       {isAuthenticated && (
@@ -591,6 +618,14 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Find a Doctor
+              </Link>
+
+              <Link
+                href="/medicines"
+                className="block pl-4 pr-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-md transition-colors duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Medicines
               </Link>
 
               {/* Authenticated user services */}

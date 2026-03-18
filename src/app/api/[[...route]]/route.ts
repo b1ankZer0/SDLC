@@ -17,6 +17,9 @@ app.route("/appointment", appointmentRoute);
 import scheduleRoute from "../schedule/schedule";
 app.route("/schedule", scheduleRoute);
 
+import medicinesRoute from "../medicines/medicines";
+app.route("/medicine", medicinesRoute);
+
 export const GET = handle(app);
 export const POST = handle(app);
 export const PATCH = handle(app);
