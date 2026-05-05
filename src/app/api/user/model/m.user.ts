@@ -85,7 +85,7 @@ const roleReqSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["doctor"],
+      enum: ["sudo", "admin", "user", "doctor", "pharmacy", "lab", "hospital"],
       default: "user",
     },
     givenDoc: [
@@ -163,7 +163,6 @@ export const userDb = {
   },
   async updateUser(id, userData) {
     try {
-      console.log(import.meta.url + " : ", userData);
       const user: userType = await userModel.findByIdAndUpdate(id, userData, {
         new: true,
         runValidators: true,

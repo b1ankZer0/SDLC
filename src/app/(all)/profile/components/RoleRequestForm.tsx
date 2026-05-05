@@ -88,6 +88,7 @@ export default function RoleRequestForm() {
           >
             <option value="">Choose a role</option>
             <option value="doctor">Doctor</option>
+            <option value="lab">Lab Technician</option>
           </select>
         </div>
 

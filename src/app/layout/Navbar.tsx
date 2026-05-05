@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/global/hook/useUser";
+import { useQuery } from "@tanstack/react-query";
+import { callApi } from "@/global/func";
 
 export default function Navbar() {
   const { user, loading, isAuthenticated, logout } = useUser();
@@ -140,6 +142,18 @@ export default function Navbar() {
         return null;
     }
   };
+
+  const { data: unSeenNotifications } = useQuery({
+    queryKey: ["unSeen-notifications"],
+    queryFn: async () => {
+      const res = await callApi("/notification/unSeen-notification", "GET");
+      return res.data || [];
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 30000, // Optional: Poll every 30 seconds
+  });
+
+  const unSeenCount = unSeenNotifications?.length || 0;
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -365,7 +379,10 @@ export default function Navbar() {
             ) : isAuthenticated ? (
               <div className="ml-4 flex items-center md:ml-6">
                 {/* Notification bell */}
-                <button className="p-2 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:outline-none transition-all duration-200">
+                <Link
+                  href="/notifications"
+                  className="p-2 relative rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:outline-none transition-all duration-200"
+                >
                   <span className="sr-only">View notifications</span>
                   <svg
                     className="h-5 w-5"
@@ -380,7 +397,29 @@ export default function Navbar() {
                       d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                     />
                   </svg>
-                </button>
+
+                  {unSeenCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                      {unSeenCount > 9 ? "9+" : unSeenCount}
+                    </span>
+                  )}
+                </Link>
+                {/* <button className="p-2 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:outline-none transition-all duration-200">
+                  <span className="sr-only">View notifications</span>
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                </button> */}
 
                 {/* User profile button - separate from dropdown */}
                 <Link

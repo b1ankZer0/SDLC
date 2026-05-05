@@ -23,7 +23,22 @@ app.get("/all-medicine", authMiddleware(false), async (c) => {
 app.get("/:id", authMiddleware(false), async (c) => {
   try {
     const id = c.req.param("id");
-    const dbRes = await medicinesDb.findById(id);
+    let dbRes = await medicinesDb.findOneByGenericName(id);
+    if (!dbRes) {
+        return res.notFound(c, module + "not found");
+    }
+    return res.ok(c, dbRes, module + "fetched successfully");
+  } catch (error) {
+    myError(c, error);
+  }
+});
+
+app.get("/search/:name", authMiddleware(false), async (c) => {
+  try {
+    const name = c.req.param("name");
+    const dbRes = await medicinesDb.find({
+      genericName: { $regex: name, $options: "i" },
+    });
     if (!dbRes) {
       return res.notFound(c, module + "not found");
     }

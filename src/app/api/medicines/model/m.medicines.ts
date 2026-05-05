@@ -154,6 +154,54 @@ export const medicinesDb = {
       throw new Error(error.message);
     }
   },
+  async findOneByGenericName(name) {
+    try {
+      let dbRes: MedicinesSchemaType = await medicinesModel.aggregate([
+        {
+          $match: { genericName: name },
+        },
+        {
+          $lookup: {
+            from: "news", // The actual name of the collection in MongoDB
+            localField: "_id", // Field from the Medicine collection
+            foreignField: "medicinesRef", // Field from the News collection
+            as: "news", // The name of the resulting array field
+          },
+        },
+        {
+          $addFields: {
+            newsCount: { $size: "$news" },
+          },
+        },
+      ]);
+      if (dbRes.length === 0) {
+        dbRes = await medicinesModel.aggregate([
+          {
+            $match: {
+              _id: new mongoose.Types.ObjectId(name),
+            },
+          },
+          {
+            $lookup: {
+              from: "news", // The actual name of the collection in MongoDB
+              localField: "_id", // Field from the Medicine collection
+              foreignField: "medicinesRef", // Field from the News collection
+              as: "news", // The name of the resulting array field
+            },
+          },
+          {
+            $addFields: {
+              newsCount: { $size: "$news" },
+            },
+          },
+        ]);
+      }
+
+      return dbRes;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
   async find(data = {}) {
     try {
       const dbRes: MedicinesSchemaType[] = await medicinesModel.find(data);

@@ -16,7 +16,7 @@ app.get("/allProblemsOption", authMiddleware(true), async (c) => {
   return res.ok(
     c,
     await problemsDb.getAll({ ref: c.get("user")._id }),
-    "Problems fetched successfully"
+    "Problems fetched successfully",
   );
 });
 
@@ -24,7 +24,7 @@ app.get("/allProblems", authMiddleware(true), async (c) => {
   return res.ok(
     c,
     await problemsDb.getAll({ ref: c.get("user")._id }),
-    "Problems fetched successfully"
+    "Problems fetched successfully",
   );
 });
 
@@ -102,7 +102,7 @@ app.get(
     } catch (error) {
       myError(c, error);
     }
-  }
+  },
 );
 
 app.post("/:problem_id/addPrescriptions", authMiddleware(true), async (c) => {
@@ -138,7 +138,7 @@ app.post("/:problem_id/addPrescriptions", authMiddleware(true), async (c) => {
     if (links.length < 1) {
       return res.badRequest(c, "no valid files found");
     }
-    console.log(import.meta.url + " : ", links);
+    // console.log(import.meta.url + " : ", links);
     // return res.badRequest(c, "no valid files found");
     const prescriptions = await prescriptionsDb.create({
       ref: problemId,

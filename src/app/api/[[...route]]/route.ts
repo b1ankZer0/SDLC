@@ -20,6 +20,9 @@ app.route("/schedule", scheduleRoute);
 import medicinesRoute from "../medicines/medicines";
 app.route("/medicine", medicinesRoute);
 
+import notificationsRoute from "../notification/notification";
+app.route("/notification", notificationsRoute);
+
 export const GET = handle(app);
 export const POST = handle(app);
 export const PATCH = handle(app);

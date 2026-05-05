@@ -264,7 +264,6 @@ app.patch("/profile", authMiddleware(true), async (c) => {
       updateData.logo = links[0];
     }
   }
-  console.log(updateData);
   const updatedUser = await userDb.updateUser(userId, updateData);
 
   return res.ok(c, updatedUser, "Profile updated");

@@ -37,7 +37,7 @@ const createPrescription = async ({ _id, data }) => {
   const response = await callApiForm(
     `/problems/${_id}/addPrescriptions`,
     "POST",
-    data
+    data,
   );
 
   if (response.error) {
@@ -51,7 +51,7 @@ const updatePrescription = async ({ p_id, id, data }) => {
   const response = await callApi(
     `/problems/${p_id}/prescriptions/${id}`,
     "PATCH",
-    data
+    data,
   );
 
   if (response.error) {
@@ -72,6 +72,7 @@ const updatePrescription = async ({ p_id, id, data }) => {
 // };
 
 // Document Component
+import { useEffect, useRef } from "react";
 
 // MedicationItem Component for editing a medication in the form
 const MedicationItem = ({
@@ -82,15 +83,67 @@ const MedicationItem = ({
   isLast,
   canRemove,
 }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Debounce search to avoid hitting API on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (medication.name.trim().length >= 1) {
+        fetchSuggestions(medication.name);
+      } else {
+        setSuggestions([]);
+        setShowDropdown(false);
+      }
+    }, 400); // 400ms delay
+
+    return () => clearTimeout(timer);
+  }, [medication.name]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchSuggestions = async (query) => {
+    setIsLoading(true);
+    try {
+      // Using your specific endpoint format
+      const res = await callApi(`/medicine/search/${query}`, "GET");
+      if (!res.error && Array.isArray(res.data)) {
+        setSuggestions(res.data);
+        setShowDropdown(res.data.length > 0);
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelect = (selectedName) => {
+    updateMedication(index, "name", selectedName);
+    setSuggestions([]);
+    setShowDropdown(false);
+  };
+
   return (
     <div className="p-3 bg-gray-50 rounded-md border border-gray-200 mb-2">
       <div className="flex justify-between items-center mb-2">
-        <h4 className="font-medium">Medication #{index + 1}</h4>
+        <h4 className="font-medium text-gray-700">Medication #{index + 1}</h4>
         {canRemove && (
           <button
             type="button"
             onClick={() => removeMedication(index)}
-            className="text-red-500 hover:text-red-700"
+            className="text-red-500 hover:text-red-700 transition-colors"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -98,18 +151,43 @@ const MedicationItem = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div>
+        {/* Name Input with Autocomplete */}
+        <div className="relative" ref={dropdownRef}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Name
           </label>
-          <input
-            type="text"
-            value={medication.name}
-            onChange={(e) => updateMedication(index, "name", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="Medication name"
-            required
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={medication.name}
+              onChange={(e) => updateMedication(index, "name", e.target.value)}
+              onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 pr-8"
+              placeholder="Start typing medicine name..."
+              // required
+            />
+            {isLoading && (
+              <Loader2 className="absolute right-2 top-2.5 h-4 w-4 text-blue-500 animate-spin" />
+            )}
+          </div>
+
+          {/* Suggestions Dropdown */}
+          {showDropdown && (
+            <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+              {suggestions.map((item) => (
+                <li
+                  key={item._id}
+                  onClick={() => handleSelect(item.name || item.genericName)}
+                  className="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer flex items-center gap-2 border-b last:border-none border-gray-50"
+                >
+                  <Pill className="h-3 w-3 text-blue-400" />
+                  <span className="font-medium text-gray-800">
+                    {item.name || item.genericName}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div>
@@ -122,7 +200,7 @@ const MedicationItem = ({
             onChange={(e) => updateMedication(index, "dosage", e.target.value)}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="e.g., 10mg"
-            required
+            // required
           />
         </div>
 
@@ -138,7 +216,7 @@ const MedicationItem = ({
             }
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="e.g., Once daily"
-            required
+            // required
           />
         </div>
       </div>
@@ -148,7 +226,7 @@ const MedicationItem = ({
           <button
             type="button"
             onClick={() => updateMedication(index + 1, "add", "")}
-            className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium transition-all"
           >
             <PlusCircle className="h-4 w-4 mr-1" />
             Add Another Medication
@@ -159,160 +237,7 @@ const MedicationItem = ({
   );
 };
 
-// Prescription Card Component
-// const PrescriptionCard = ({
-//   prescription,
-//   // onEdit,
-//   // onDelete,
-//   // currentUserRole,
-// }) => {
-//   const [isExpanded, setIsExpanded] = useState(false);
-
-//   const formatDate = (dateString) => {
-//     const date = new Date(dateString);
-//     return new Intl.DateTimeFormat("en-US", {
-//       year: "numeric",
-//       month: "short",
-//       day: "numeric",
-//     }).format(date);
-//   };
-
-//   // Check if user can edit this prescription
-//   // const canEdit = () => {
-//   //   // If prescription was added by a doctor, only a doctor can edit it
-//   //   if (prescription.doctorAdded) {
-//   //     return currentUserRole === "doctor";
-//   //   }
-
-//   //   // If prescription was added by the user themselves, they can edit it
-//   //   return true;
-//   // };
-
-//   return (
-//     <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-//       <div className="p-4">
-//         <div className="flex justify-between items-center mb-3">
-//           <h3 className="font-medium text-gray-900">{prescription.title}</h3>
-//           {prescription.doctorAdded && (
-//             <span className="px-2 py-1 text-xs font-medium rounded-full border bg-blue-100 text-blue-800 border-blue-300">
-//               Doctor Prescribed
-//             </span>
-//           )}
-//         </div>
-
-//         <div className="flex items-center text-sm text-gray-500 mb-2">
-//           <Calendar className="h-4 w-4 mr-1" />
-//           <span>Added: {formatDate(prescription.createdAt)}</span>
-//         </div>
-
-//         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-//           {prescription.description}
-//         </p>
-
-//         <div className="flex justify-between items-center">
-//           <button
-//             onClick={() => setIsExpanded(!isExpanded)}
-//             className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
-//           >
-//             {isExpanded ? (
-//               <>
-//                 <ChevronUp className="h-4 w-4 mr-1" />
-//                 Show Less
-//               </>
-//             ) : (
-//               <>
-//                 <ChevronDown className="h-4 w-4 mr-1" />
-//                 Show More
-//               </>
-//             )}
-//           </button>
-
-//           {/* <div className="flex space-x-2">
-//             {canEdit() && (
-//               <button
-//                 onClick={() => onEdit(prescription)}
-//                 className="flex items-center text-blue-600 hover:text-blue-800"
-//               >
-//                 <Edit className="h-4 w-4" />
-//               </button>
-//             )}
-
-//             {!prescription.doctorAdded && (
-//               <button
-//                 onClick={() => onDelete(prescription._id)}
-//                 className="flex items-center text-red-600 hover:text-red-800"
-//               >
-//                 <Trash2 className="h-4 w-4" />
-//               </button>
-//             )}
-//           </div> */}
-//         </div>
-//       </div>
-
-//       {isExpanded && (
-//         <div className="border-t border-gray-200 p-4 bg-gray-50">
-//           {/* Attached documents */}
-//           {prescription.givenDoc && prescription.givenDoc.length > 0 && (
-//             <div className="mb-4">
-//               <h4 className="text-sm font-medium text-gray-700 mb-2">
-//                 Documents:
-//               </h4>
-//               <div className="flex flex-wrap gap-2">
-//                 {prescription.givenDoc.map((doc, index) => (
-//                   <DocumentViewer key={index} docUrl={doc} />
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Medication details */}
-//           {prescription.medication && prescription.medication.length > 0 && (
-//             <div>
-//               <h4 className="text-sm font-medium text-gray-700 mb-2">
-//                 Medications:
-//               </h4>
-//               <div className="space-y-2">
-//                 {prescription.medication.map((med, index) => (
-//                   <div
-//                     key={index}
-//                     className="bg-white p-3 rounded-lg border border-gray-200"
-//                   >
-//                     <div className="flex items-center gap-1 mb-1">
-//                       <Pill className="h-4 w-4 text-blue-500" />
-//                       <span className="font-medium">{med.name}</span>
-//                     </div>
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-//                       <div className="flex items-center gap-1">
-//                         <Activity className="h-4 w-4 text-gray-400" />
-//                         <span>Dosage: {med.dosage}</span>
-//                       </div>
-//                       <div className="flex items-center gap-1">
-//                         <Clock className="h-4 w-4 text-gray-400" />
-//                         <span>Frequency: {med.frequency}</span>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Additional info */}
-//           <div className="mt-4 pt-3 border-t border-gray-200">
-//             <div className="flex items-center text-sm text-gray-500 mb-1">
-//               <span className="font-medium mr-1">Added by:</span>
-//               <span>{prescription.by !== "-" ? prescription.by : "You"}</span>
-//             </div>
-//             <div className="flex items-center text-sm text-gray-500">
-//               <span className="font-medium mr-1">Last updated:</span>
-//               <span>{formatDate(prescription.updatedAt)}</span>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
+import Link from "next/link";
 
 const PrescriptionPopup = ({ prescription, onClose }) => {
   const formatDate = (dateString) => {
@@ -333,7 +258,7 @@ const PrescriptionPopup = ({ prescription, onClose }) => {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -354,16 +279,10 @@ const PrescriptionPopup = ({ prescription, onClose }) => {
               <h3 className="text-sm font-medium text-gray-500 mb-2">
                 Documents
               </h3>
-
               <div className="flex flex-wrap gap-2">
                 {prescription.givenDoc.map((doc, index) => (
                   <ShowFileInPopUp key={index} docUrl={doc} />
                 ))}
-                {/* {prescription.givenDoc.map((doc, index) => (
-                  <div key={index} className="bg-gray-100 rounded-md px-3 py-2 text-sm">
-                    Document {index + 1}
-                  </div>
-                ))} */}
               </div>
             </div>
           )}
@@ -378,13 +297,21 @@ const PrescriptionPopup = ({ prescription, onClose }) => {
                 {prescription.medication.map((med, index) => (
                   <div
                     key={index}
-                    className="bg-white p-4 rounded-lg border border-gray-200"
+                    className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <Pill className="h-5 w-5 text-blue-500" />
-                      <span className="font-medium text-gray-900">
+                      {/* 
+                          Updated Section: 
+                          Navigates to the medicine detail page based on name 
+                      */}
+                      <Link
+                        href={`/medicines/${encodeURIComponent(med.name)}`}
+                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-all"
+                        title={`View details for ${med.name}`}
+                      >
                         {med.name}
-                      </span>
+                      </Link>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                       <div className="flex items-center gap-2">
@@ -435,6 +362,127 @@ const PrescriptionPopup = ({ prescription, onClose }) => {
     </PopUp>
   );
 };
+// const PrescriptionPopup = ({ prescription, onClose }) => {
+//   const formatDate = (dateString) => {
+//     const date = new Date(dateString);
+//     return new Intl.DateTimeFormat("en-US", {
+//       year: "numeric",
+//       month: "short",
+//       day: "numeric",
+//     }).format(date);
+//   };
+
+//   return (
+//     <PopUp isOpen={true} onClose={onClose}>
+//       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+//         <div className="flex justify-between items-center border-b border-gray-200 p-4">
+//           <h2 className="text-xl font-semibold text-gray-900">
+//             {prescription.title}
+//           </h2>
+//           <button
+//             onClick={onClose}
+//             className="text-gray-500 hover:text-gray-700"
+//           >
+//             <X className="h-5 w-5" />
+//           </button>
+//         </div>
+
+//         <div className="p-6">
+//           {/* Prescription description */}
+//           <div className="mb-6">
+//             <h3 className="text-sm font-medium text-gray-500 mb-1">
+//               Description
+//             </h3>
+//             <p className="text-gray-800">{prescription.description}</p>
+//           </div>
+
+//           {/* Attached documents */}
+//           {prescription.givenDoc && prescription.givenDoc.length > 0 && (
+//             <div className="mb-6">
+//               <h3 className="text-sm font-medium text-gray-500 mb-2">
+//                 Documents
+//               </h3>
+
+//               <div className="flex flex-wrap gap-2">
+//                 {prescription.givenDoc.map((doc, index) => (
+//                   <ShowFileInPopUp key={index} docUrl={doc} />
+//                 ))}
+//                 {/* {prescription.givenDoc.map((doc, index) => (
+//                   <div key={index} className="bg-gray-100 rounded-md px-3 py-2 text-sm">
+//                     Document {index + 1}
+//                   </div>
+//                 ))} */}
+//               </div>
+//             </div>
+//           )}
+
+//           {/* Medication details */}
+//           {prescription.medication && prescription.medication.length > 0 && (
+//             <div className="mb-6">
+//               <h3 className="text-sm font-medium text-gray-500 mb-2">
+//                 Medications
+//               </h3>
+//               <div className="space-y-3">
+//                 {prescription.medication.map((med, index) => (
+//                   <div
+//                     key={index}
+//                     className="bg-white p-4 rounded-lg border border-gray-200"
+//                   >
+//                     <div className="flex items-center gap-2 mb-2">
+//                       <Pill className="h-5 w-5 text-blue-500" />
+//                       <span className="font-medium text-gray-900">
+//                         {med.name}
+//                       </span>
+//                     </div>
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+//                       <div className="flex items-center gap-2">
+//                         <Activity className="h-4 w-4 text-gray-400" />
+//                         <span>Dosage: {med.dosage}</span>
+//                       </div>
+//                       <div className="flex items-center gap-2">
+//                         <Clock className="h-4 w-4 text-gray-400" />
+//                         <span>Frequency: {med.frequency}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+//             </div>
+//           )}
+
+//           {/* Additional info */}
+//           <div className="border-t border-gray-200 pt-4 mt-4">
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//               <div>
+//                 <p className="text-sm text-gray-500">
+//                   <span className="font-medium">Added by:</span>{" "}
+//                   {prescription.by !== "-" ? prescription.by : "You"}
+//                 </p>
+//                 <p className="text-sm text-gray-500">
+//                   <span className="font-medium">Added on:</span>{" "}
+//                   {formatDate(prescription.createdAt)}
+//                 </p>
+//               </div>
+//               <div>
+//                 <p className="text-sm text-gray-500">
+//                   <span className="font-medium">Last updated:</span>{" "}
+//                   {formatDate(prescription.updatedAt)}
+//                 </p>
+//                 {prescription.doctorAdded && (
+//                   <p className="flex items-center mt-1">
+//                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 border border-blue-300">
+//                       Doctor Prescribed
+//                     </span>
+//                   </p>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </PopUp>
+//   );
+// };
 
 // Main component for Prescription Table List
 const PrescriptionTableList = ({
@@ -468,7 +516,7 @@ const PrescriptionTableList = ({
   const sortedPrescriptions = [...prescriptions].sort(
     (a, b) =>
       new Date(b.createdAt as string).getTime() -
-      new Date(a.createdAt as string).getTime()
+      new Date(a.createdAt as string).getTime(),
   );
 
   return (
@@ -574,12 +622,12 @@ const PrescriptionForm = ({
 
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
-    initialData?.description || ""
+    initialData?.description || "",
   );
   const [medications, setMedications] = useState(
     initialData?.medication?.length > 0
       ? [...initialData.medication]
-      : [{ ...defaultMedication }]
+      : [{ ...defaultMedication }],
   );
   const [files, setFiles] = useState([]);
 
@@ -631,7 +679,7 @@ const PrescriptionForm = ({
     // Add medications
     formData.append(
       "medication",
-      JSON.stringify(medications.filter((med) => med.name.trim() !== ""))
+      JSON.stringify(medications.filter((med) => med.name.trim() !== "")),
     );
 
     // Add additional fields
@@ -965,430 +1013,3 @@ export default function PrescriptionsManagement({ params }) {
     </div>
   );
 }
-
-// const PrescriptionFilters = ({ onFilterChange }) => {
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [filters, setFilters] = useState({
-//     dateRange: "all",
-//     source: "all",
-//     hasDocuments: false,
-//   });
-
-//   const handleFilterChange = (key, value) => {
-//     const newFilters = { ...filters, [key]: value };
-//     setFilters(newFilters);
-//     onFilterChange(newFilters);
-//   };
-
-//   return (
-//     <div className="relative mb-4">
-//       <button
-//         onClick={() => setIsOpen(!isOpen)}
-//         className="flex items-center px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-//       >
-//         <Filter className="h-4 w-4 mr-1" />
-//         Filters
-//         <ChevronDown
-//           className={`h-4 w-4 ml-1 transition-transform ${
-//             isOpen ? "rotate-180" : ""
-//           }`}
-//         />
-//       </button>
-
-//       {isOpen && (
-//         <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 p-4 z-10">
-//           <h4 className="text-sm font-medium text-gray-700 mb-3">
-//             Filter Prescriptions
-//           </h4>
-
-//           <div className="mb-3">
-//             <label className="block text-xs font-medium text-gray-700 mb-1">
-//               Date Range
-//             </label>
-//             <select
-//               value={filters.dateRange}
-//               onChange={(e) => handleFilterChange("dateRange", e.target.value)}
-//               className="w-full text-sm border border-gray-300 rounded-md p-1"
-//             >
-//               <option value="all">All Time</option>
-//               <option value="week">Past Week</option>
-//               <option value="month">Past Month</option>
-//               <option value="year">Past Year</option>
-//             </select>
-//           </div>
-
-//           <div className="mb-3">
-//             <label className="block text-xs font-medium text-gray-700 mb-1">
-//               Source
-//             </label>
-//             <select
-//               value={filters.source}
-//               onChange={(e) => handleFilterChange("source", e.target.value)}
-//               className="w-full text-sm border border-gray-300 rounded-md p-1"
-//             >
-//               <option value="all">All Sources</option>
-//               <option value="doctor">Doctor Prescribed</option>
-//               <option value="self">Self Added</option>
-//             </select>
-//           </div>
-
-//           <div className="flex items-center">
-//             <input
-//               type="checkbox"
-//               id="hasDocuments"
-//               checked={filters.hasDocuments}
-//               onChange={(e) =>
-//                 handleFilterChange("hasDocuments", e.target.checked)
-//               }
-//               className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-//             />
-//             <label
-//               htmlFor="hasDocuments"
-//               className="ml-2 text-xs text-gray-700"
-//             >
-//               Has attached documents
-//             </label>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// const PrintablePrescription = ({ prescription, onClose }) => {
-//   const componentRef = React.useRef();
-
-//   const formatDate = (dateString) => {
-//     const date = new Date(dateString);
-//     return new Intl.DateTimeFormat("en-US", {
-//       year: "numeric",
-//       month: "long",
-//       day: "numeric",
-//     }).format(date);
-//   };
-
-//   return (
-//     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-//       <div className="bg-white rounded-lg max-w-3xl w-full max-h-screen overflow-auto">
-//         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-//           <h3 className="font-medium text-lg">Print Prescription</h3>
-//           <div className="flex space-x-2">
-//             <button
-//               onClick={() => window.print()}
-//               className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-//             >
-//               Print
-//             </button>
-//             <button
-//               onClick={onClose}
-//               className="text-gray-400 hover:text-gray-500"
-//             >
-//               <X className="h-5 w-5" />
-//             </button>
-//           </div>
-//         </div>
-
-//         <div ref={componentRef} className="p-8 print:p-0">
-//           <div className="mb-8 text-center border-b pb-4 print:border-b-2">
-//             <h1 className="text-2xl font-bold">Medical Prescription</h1>
-//             <p className="text-gray-500">
-//               Reference #: {prescription._id.substring(0, 8)}
-//             </p>
-//           </div>
-
-//           <div className="mb-6">
-//             <h2 className="text-xl font-bold mb-2">{prescription.title}</h2>
-//             <p className="text-gray-700">{prescription.description}</p>
-//           </div>
-
-//           <div className="mb-6">
-//             <h3 className="text-lg font-semibold mb-2 border-b print:border-b">
-//               Medications
-//             </h3>
-//             <table className="w-full border-collapse">
-//               <thead>
-//                 <tr className="border-b">
-//                   <th className="py-2 text-left">Medication</th>
-//                   <th className="py-2 text-left">Dosage</th>
-//                   <th className="py-2 text-left">Frequency</th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {prescription.medication.map((med, index) => (
-//                   <tr key={index} className="border-b">
-//                     <td className="py-2">{med.name}</td>
-//                     <td className="py-2">{med.dosage}</td>
-//                     <td className="py-2">{med.frequency}</td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-
-//           <div className="mb-6">
-//             <div className="flex justify-between">
-//               <div>
-//                 <p className="text-sm text-gray-600">
-//                   <span className="font-medium">Prescribed By:</span>{" "}
-//                   {prescription.by !== "-" ? prescription.by : "Self-added"}
-//                 </p>
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-600">
-//                   <span className="font-medium">Date:</span>{" "}
-//                   {formatDate(prescription.createdAt)}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-
-//           <div className="mt-12 text-center text-sm text-gray-500 print:mt-24">
-//             <p>This is a digital copy of your prescription.</p>
-//             <p>
-//               For medical emergencies, please contact your healthcare provider
-//               immediately.
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// const MedicationReminders = ({ medications }) => {
-//   const [reminders, setReminders] = useState([]);
-
-//   useEffect(() => {
-//     // Load saved reminders from localStorage
-//     const savedReminders = localStorage.getItem("medicationReminders");
-//     if (savedReminders) {
-//       setReminders(JSON.parse(savedReminders));
-//     }
-//   }, []);
-
-//   const toggleReminder = (medicationName) => {
-//     let updatedReminders;
-
-//     if (reminders.includes(medicationName)) {
-//       updatedReminders = reminders.filter((name) => name !== medicationName);
-//     } else {
-//       updatedReminders = [...reminders, medicationName];
-//     }
-
-//     setReminders(updatedReminders);
-//     localStorage.setItem(
-//       "medicationReminders",
-//       JSON.stringify(updatedReminders)
-//     );
-
-//     if (!reminders.includes(medicationName)) {
-//       // Request notification permission if adding a reminder
-//       if (Notification.permission !== "granted") {
-//         Notification.requestPermission();
-//       }
-//     }
-//   };
-
-//   return (
-//     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-6">
-//       <h3 className="font-medium text-gray-900 mb-3 flex items-center">
-//         <Clock className="h-5 w-5 mr-1 text-blue-500" />
-//         Medication Reminders
-//       </h3>
-
-//       {medications.length === 0 ? (
-//         <p className="text-sm text-gray-500">
-//           No medications available to set reminders.
-//         </p>
-//       ) : (
-//         <div className="space-y-2">
-//           {medications.map((med, index) => (
-//             <div
-//               key={index}
-//               className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md"
-//             >
-//               <div>
-//                 <p className="font-medium">{med.name}</p>
-//                 <p className="text-sm text-gray-500">{med.frequency}</p>
-//               </div>
-//               <button
-//                 onClick={() => toggleReminder(med.name)}
-//                 className={`px-3 py-1 text-xs font-medium rounded-full ${
-//                   reminders.includes(med.name)
-//                     ? "bg-blue-100 text-blue-800 border border-blue-300"
-//                     : "bg-gray-100 text-gray-800 border border-gray-300"
-//                 }`}
-//               >
-//                 {reminders.includes(med.name) ? "Reminder On" : "Set Reminder"}
-//               </button>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// const PrescriptionStats = ({ prescriptions }) => {
-//   // Calculate statistics
-//   const doctorPrescribed = prescriptions.filter((p) => p.doctorAdded).length;
-//   const selfAdded = prescriptions.length - doctorPrescribed;
-//   const totalMedications = prescriptions.reduce(
-//     (total, p) => total + (p.medication ? p.medication.length : 0),
-//     0
-//   );
-
-//   const mostCommonMedication = React.useMemo(() => {
-//     const medCount = {};
-//     prescriptions.forEach((p) => {
-//       if (p.medication) {
-//         p.medication.forEach((med) => {
-//           medCount[med.name] = (medCount[med.name] || 0) + 1;
-//         });
-//       }
-//     });
-
-//     let maxMed = "";
-//     let maxCount = 0;
-
-//     for (const [med, count] of Object.entries(medCount)) {
-//       if (count > maxCount) {
-//         maxMed = med;
-//         maxCount = count;
-//       }
-//     }
-
-//     return { name: maxMed, count: maxCount };
-//   }, [prescriptions]);
-
-//   return (
-//     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-6">
-//       <h3 className="font-medium text-gray-900 mb-3">Prescription Overview</h3>
-
-//       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-//         <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
-//           <p className="text-lg font-semibold text-blue-700">
-//             {prescriptions.length}
-//           </p>
-//           <p className="text-xs text-gray-600">Total Prescriptions</p>
-//         </div>
-
-//         <div className="bg-green-50 p-3 rounded-md border border-green-100">
-//           <p className="text-lg font-semibold text-green-700">
-//             {doctorPrescribed}
-//           </p>
-//           <p className="text-xs text-gray-600">Doctor Prescribed</p>
-//         </div>
-
-//         <div className="bg-purple-50 p-3 rounded-md border border-purple-100">
-//           <p className="text-lg font-semibold text-purple-700">{selfAdded}</p>
-//           <p className="text-xs text-gray-600">Self Added</p>
-//         </div>
-
-//         <div className="bg-yellow-50 p-3 rounded-md border border-yellow-100">
-//           <p className="text-lg font-semibold text-yellow-700">
-//             {totalMedications}
-//           </p>
-//           <p className="text-xs text-gray-600">Total Medications</p>
-//         </div>
-//       </div>
-
-//       {mostCommonMedication.name && (
-//         <div className="mt-4 p-3 bg-gray-50 rounded-md">
-//           <p className="text-sm">
-//             <span className="font-medium">Most common medication:</span>{" "}
-//             {mostCommonMedication.name} (used in {mostCommonMedication.count}{" "}
-//             prescriptions)
-//           </p>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// const ExportPrescriptions = ({ prescriptions }) => {
-//   const [exportFormat, setExportFormat] = useState("json");
-//   const [isExporting, setIsExporting] = useState(false);
-
-//   const handleExport = () => {
-//     setIsExporting(true);
-
-//     try {
-//       let dataStr;
-//       let filename;
-
-//       if (exportFormat === "json") {
-//         dataStr = JSON.stringify(prescriptions, null, 2);
-//         filename = "prescriptions.json";
-//       } else if (exportFormat === "csv") {
-//         // Simple CSV export for prescriptions
-//         const headers = [
-//           "Title",
-//           "Description",
-//           "Created Date",
-//           "Doctor Prescribed",
-//           "Medications",
-//         ];
-//         const rows = prescriptions.map((p) => [
-//           p.title,
-//           p.description,
-//           new Date(p.createdAt).toLocaleDateString(),
-//           p.doctorAdded ? "Yes" : "No",
-//           p.medication
-//             ? p.medication.map((m) => `${m.name} (${m.dosage})`).join("; ")
-//             : "",
-//         ]);
-
-//         dataStr = [
-//           headers.join(","),
-//           ...rows.map((r) =>
-//             r.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")
-//           ),
-//         ].join("\n");
-
-//         filename = "prescriptions.csv";
-//       }
-
-//       const blob = new Blob([dataStr], { type: "text/plain" });
-//       const url = URL.createObjectURL(blob);
-
-//       const link = document.createElement("a");
-//       link.download = filename;
-//       link.href = url;
-//       link.click();
-
-//       URL.revokeObjectURL(url);
-//     } catch (error) {
-//       console.error("Error exporting data:", error);
-//       alert("Error exporting data. Please try again.");
-//     } finally {
-//       setIsExporting(false);
-//     }
-//   };
-
-//   return (
-//     <div className="flex items-center space-x-2">
-//       <select
-//         value={exportFormat}
-//         onChange={(e) => setExportFormat(e.target.value)}
-//         className="text-sm border border-gray-300 rounded-md p-1"
-//       >
-//         <option value="json">JSON</option>
-//         <option value="csv">CSV</option>
-//       </select>
-
-//       <button
-//         onClick={handleExport}
-//         disabled={isExporting || prescriptions.length === 0}
-//         className="flex items-center px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300"
-//       >
-//         {isExporting ? (
-//           <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-//         ) : (
-//           <FileText className="h-4 w-4 mr-1" />
-//         )}
-//         Export
-//       </button>
-//     </div>
-//   );
-// };
