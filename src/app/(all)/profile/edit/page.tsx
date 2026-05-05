@@ -1,13 +1,18 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { useUser } from "@/global/hook/useUser";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import { callApi, callApiForm } from "@/global/func";
+
+type SecurityQuestion = {
+  question: string;
+  answers: string;
+};
 
 type UserProfile = {
   name: string;
@@ -17,6 +22,8 @@ type UserProfile = {
   phone?: string;
   address?: string;
   logo?: string;
+  password?: string;
+  securityQuestion?: SecurityQuestion[];
 };
 
 export default function EditProfilePage() {
@@ -42,11 +49,17 @@ export default function EditProfilePage() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
     setError,
   } = useForm<UserProfile>();
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "securityQuestion",
+  });
 
   useEffect(() => {
     if (user && typeof user === "object" && "name" in user && "email" in user) {
@@ -57,6 +70,7 @@ export default function EditProfilePage() {
         dateOfBirth: (user as UserProfile).dateOfBirth?.split("T")[0],
         phone: (user as UserProfile).phone,
         address: (user as UserProfile).address,
+        securityQuestion: (user as UserProfile).securityQuestion || [],
       });
       setLogoPreview((user as UserProfile).logo || "/default-avatar.png");
     }
@@ -89,11 +103,22 @@ export default function EditProfilePage() {
     }
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = (data: UserProfile) => {
     const formData = new FormData();
+
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value as string);
+      if (key === "password" && !value) return;
+
+      if (key === "securityQuestion" && Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+        return;
+      }
+
+      if (value !== undefined && value !== null) {
+        formData.append(key, value as string);
+      }
     });
+
     if (logoFile) formData.append("logo", logoFile);
     mutation.mutate(formData);
   };
@@ -157,16 +182,8 @@ export default function EditProfilePage() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   placeholder="Enter your name"
                 />
-                {errors.name &&
-                  typeof errors.name === "object" &&
-                  "message" in errors.name && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {errors.name.message as string}
-                    </p>
-                  )}
               </div>
 
-              {/* Other form fields with placeholders */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Phone
@@ -187,6 +204,97 @@ export default function EditProfilePage() {
                   {...register("address")}
                   rows={3}
                   placeholder="Not provided"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+              </div>
+
+              {/* Recovery Questions Field */}
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Recovery Questions
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => append({ question: "", answers: "" })}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    + Add Question
+                  </button>
+                </div>
+
+                {fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="flex gap-4 mb-4 items-start p-4 bg-gray-50 rounded-md border border-gray-200"
+                  >
+                    <div className="flex-1 space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Question
+                        </label>
+                        <input
+                          {...register(
+                            `securityQuestion.${index}.question` as const,
+                            {
+                              required: "Question is required",
+                            },
+                          )}
+                          placeholder="e.g., What was the name of your first pet?"
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        />
+                        {errors?.securityQuestion?.[index]?.question && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {errors.securityQuestion[index]?.question?.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Answer
+                        </label>
+                        <input
+                          {...register(
+                            `securityQuestion.${index}.answers` as const,
+                            {
+                              required: "Answer is required",
+                            },
+                          )}
+                          placeholder="Enter your answer"
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        />
+                        {errors?.securityQuestion?.[index]?.answers && (
+                          <p className="mt-1 text-xs text-red-600">
+                            {errors.securityQuestion[index]?.answers?.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium mt-6"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Password Field */}
+              <div className="pt-4 border-t border-gray-100">
+                <label className="block text-sm font-medium text-gray-700">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  {...register("password", {
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters long",
+                    },
+                  })}
+                  placeholder="Leave blank to keep current password"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>

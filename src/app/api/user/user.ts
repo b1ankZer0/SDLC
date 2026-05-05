@@ -110,7 +110,7 @@ app.patch(
     const updatedUser = await userDb.updateUser(_id, updateData);
 
     return res.ok(c, updatedUser, "Profile updated");
-  }
+  },
 );
 
 app.get("/profile", authMiddleware(true), async (c) => {
@@ -118,6 +118,88 @@ app.get("/profile", authMiddleware(true), async (c) => {
     const user = await userDb.findById(c.get("user")._id);
     user.password = undefined; // Remove password from response
     return res.ok(c, user, "User verified successfully");
+  } catch (error) {
+    myError(c, error);
+  }
+});
+
+app.post("/forgot-password", authMiddleware(false), async (c) => {
+  try {
+    const body = await c.req.json();
+    const user = await userDb.getLoginUser({ email: body.email });
+    if (!user) {
+      return res.notFound(c, "User not found");
+    }
+    if (!user.securityQuestion || user.securityQuestion.length === 0) {
+      return res.ok(
+        c,
+        { QsNo: -1, question: "account creation date?" },
+        "No security question set. Please answer the default question to reset your password",
+      );
+    } else {
+      const rendomIndex = Math.floor(
+        Math.random() * user.securityQuestion.length,
+      );
+      return res.ok(
+        c,
+        {
+          QsNo: rendomIndex,
+          question: user.securityQuestion[rendomIndex].question,
+        },
+        "Security question fetched successfully",
+      );
+    }
+  } catch (error) {
+    myError(c, error);
+  }
+});
+
+app.post("/forgot-password-verification", authMiddleware(false), async (c) => {
+  try {
+    const body = await c.req.json();
+    const user = await userDb.getLoginUser({ email: body.email });
+    if (!user) {
+      return res.notFound(c, "User not found");
+    }
+    if (body.newPassword.length < 8) {
+      return res.badRequest(c, "Password must be at least 8 characters long");
+    }
+    const newPassword = body.newPassword;
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    if (body.QsNo === -1) {
+      body.answer = body.answer.trim().toLowerCase();
+      const accountCreationDate = new Date(user.createdAt);
+      const formattedDate = `${accountCreationDate.getDate()}-${
+        accountCreationDate.getMonth() + 1
+      }-${accountCreationDate.getFullYear()}`;
+      //+-1month time difference allowed
+      const currentDate = new Date();
+      const timeDiff = Math.abs(
+        currentDate.getTime() - accountCreationDate.getTime(),
+      );
+      const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      if (body.answer === formattedDate && diffDays <= 30) {
+        await userDb.updateUser(user._id, { password: hashedPassword });
+        return res.ok(c, {}, "reset successful");
+      } else {
+        return res.badRequest(
+          c,
+          "Verification failed. Incorrect answer or account creation date is too old.",
+        );
+      }
+    } else if (body.QsNo > -1) {
+      body.answer = body.answer.trim().toLowerCase();
+      const securityQuestion = user.securityQuestion[body.QsNo];
+      if (body.answer === securityQuestion.answers.trim().toLowerCase()) {
+        await userDb.updateUser(user._id, { password: hashedPassword });
+        return res.ok(c, {}, "reset successful");
+      } else {
+        return res.badRequest(c, "Verification failed. Incorrect answer.");
+      }
+    } else {
+      return res.badRequest(c, "Invalid request");
+    }
   } catch (error) {
     myError(c, error);
   }
@@ -139,9 +221,38 @@ app.patch("/profile", authMiddleware(true), async (c) => {
     email: formData.get("email"),
     gender: formData.get("gender"),
     dateOfBirth: formData.get("dateOfBirth"),
-    phone: formData.get("phone"),
     address: formData.get("address"),
   };
+
+  if (formData.get("password")) {
+    const password = formData.get("password") as string;
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    updateData.password = hashedPassword;
+  }
+
+  const phone = formData.get("phone");
+
+  if (phone) {
+    const phoneString = phone.toString().trim();
+
+    // Matches optional '+', followed by 5 to 15 digits
+    const internationalPhoneRegex = /^\+?[1-9]\d{4,14}$/;
+
+    if (!internationalPhoneRegex.test(phoneString)) {
+      return res.badRequest(
+        c,
+        "Invalid phone number format. Please include the country code (e.g., +1234567890).",
+      );
+    }
+
+    updateData.phone = phoneString;
+  }
+
+  if (formData.get("securityQuestion")) {
+    updateData.securityQuestion = JSON.parse(
+      formData.get("securityQuestion") as string,
+    );
+  }
 
   // Handle logo file
   const logoFile = formData.get("logo");
@@ -153,6 +264,7 @@ app.patch("/profile", authMiddleware(true), async (c) => {
       updateData.logo = links[0];
     }
   }
+  console.log(updateData);
   const updatedUser = await userDb.updateUser(userId, updateData);
 
   return res.ok(c, updatedUser, "Profile updated");
@@ -227,7 +339,7 @@ app.get(
     } catch (error) {
       myError(c, error);
     }
-  }
+  },
 );
 
 app.patch(
@@ -263,7 +375,7 @@ app.patch(
     } catch (error) {
       myError(c, error);
     }
-  }
+  },
 );
 
 export default app;

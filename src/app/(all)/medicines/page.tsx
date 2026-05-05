@@ -141,8 +141,10 @@ export default function MedicinesPage() {
 
             {/* Action buttons */}
             <div className="flex items-center gap-2">
-              {/* Add Medicine — all logged-in users */}
-              {user && (
+              {/* Add Medicine — Restricted to sudo, admin, and lab roles */}
+              {(user?.role === "sudo" ||
+                user?.role === "admin" ||
+                user?.role === "lab") && (
                 <Link
                   href="/medicines/add"
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"

@@ -50,6 +50,12 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please provide a password"],
       minlength: [6, "Password cannot be less than 6 characters"],
     },
+    securityQuestion: [
+      {
+        question: String,
+        answers: String,
+      },
+    ],
     address: {
       type: String,
       default: "Not provided",
@@ -59,7 +65,7 @@ const UserSchema = new mongoose.Schema(
       default: "-",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 type userType = mongoose.InferSchemaType<typeof UserSchema>;
@@ -100,7 +106,7 @@ const roleReqSchema = new mongoose.Schema(
       default: "-",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Check if model exists before compiling
@@ -157,6 +163,7 @@ export const userDb = {
   },
   async updateUser(id, userData) {
     try {
+      console.log(import.meta.url + " : ", userData);
       const user: userType = await userModel.findByIdAndUpdate(id, userData, {
         new: true,
         runValidators: true,
