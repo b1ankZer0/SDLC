@@ -151,7 +151,7 @@ export default function ForgotPassword() {
                   Your Answer
                 </label>
                 <input
-                  type="text"
+                  type={challenge?.QsNo === -1 ? "date" : "text"}
                   required
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}

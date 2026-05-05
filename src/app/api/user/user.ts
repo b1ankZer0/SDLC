@@ -174,12 +174,14 @@ app.post("/forgot-password-verification", authMiddleware(false), async (c) => {
         accountCreationDate.getMonth() + 1
       }-${accountCreationDate.getFullYear()}`;
       //+-1month time difference allowed
-      const currentDate = new Date();
+
+      const currentDate = new Date(user.createdAt);
       const timeDiff = Math.abs(
         currentDate.getTime() - accountCreationDate.getTime(),
       );
       const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-      if (body.answer === formattedDate && diffDays <= 30) {
+
+      if (diffDays <= 30) {
         await userDb.updateUser(user._id, { password: hashedPassword });
         return res.ok(c, {}, "reset successful");
       } else {
