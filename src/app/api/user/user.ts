@@ -343,6 +343,34 @@ app.get(
   },
 );
 
+app.get("/getSettings", authMiddleware(true), async (c) => {
+  try {
+    const id = c.get("user")._id;
+    const user = await userDb.findById(id);
+    if (!user) {
+      return res.notFound(c, "No user found");
+    }
+    return res.ok(c, user.settings, "Settings fetched successfully");
+  } catch (error) {
+    myError(c, error);
+  }
+});
+app.post("/setSettings", authMiddleware(true), async (c) => {
+  try {
+    const id = c.get("user")._id;
+    const user = await userDb.findById(id);
+    if (!user) {
+      return res.notFound(c, "No user found");
+    }
+    const settings = await c.req.json();
+    user.settings = settings;
+    const updatedUser = await userDb.updateUser(id, { settings });
+    return res.ok(c, updatedUser.settings, "Settings updated successfully");
+  } catch (error) {
+    myError(c, error);
+  }
+});
+
 app.patch(
   "/updateRoleReq/:id",
   authMiddleware(true, ["sudo", "admin"]),

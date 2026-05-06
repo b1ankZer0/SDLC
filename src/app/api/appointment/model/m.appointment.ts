@@ -62,7 +62,7 @@ const appointmentSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 type type = mongoose.InferSchemaType<typeof appointmentSchema>;
@@ -164,6 +164,77 @@ export const appointmentDb = {
         new: true,
         runValidators: true,
       });
+      return dbRes;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  },
+  async dashboardInfo(id) {
+    try {
+      const dbRes = await appointmentModel.aggregate([
+        // 1. Filter by the specific user
+        {
+          $match: { userRef: new mongoose.Types.ObjectId(id) },
+        },
+        // 2. Use facet to run parallel calculations
+        {
+          $facet: {
+            totalAppointments: [{ $count: "count" }],
+            statusBreakdown: [
+              {
+                $group: {
+                  _id: "$status",
+                  count: { $sum: 1 },
+                },
+              },
+            ],
+          },
+        },
+        // 3. Optional: Format the output for cleaner API response
+        {
+          $project: {
+            total: {
+              $ifNull: [{ $arrayElemAt: ["$totalAppointments.count", 0] }, 0],
+            },
+            breakdown: {
+              $arrayToObject: {
+                $map: {
+                  input: [
+                    "request",
+                    "accept",
+                    "reSchedule",
+                    "reject",
+                    "cancel",
+                  ],
+                  as: "s",
+                  in: {
+                    k: "$$s",
+                    v: {
+                      $let: {
+                        vars: {
+                          matchedStatus: {
+                            $filter: {
+                              input: "$statusBreakdown",
+                              cond: { $eq: ["$$this._id", "$$s"] },
+                            },
+                          },
+                        },
+                        in: {
+                          $ifNull: [
+                            { $arrayElemAt: ["$$matchedStatus.count", 0] },
+                            0,
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ]);
+
       return dbRes;
     } catch (error) {
       throw new Error(error.message);

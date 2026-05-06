@@ -23,6 +23,9 @@ app.route("/medicine", medicinesRoute);
 import notificationsRoute from "../notification/notification";
 app.route("/notification", notificationsRoute);
 
+import dashboardsRoute from "../dashboard";
+app.route("/dashboard", dashboardsRoute);
+
 export const GET = handle(app);
 export const POST = handle(app);
 export const PATCH = handle(app);

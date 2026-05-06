@@ -60,6 +60,14 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "Not provided",
     },
+    settings: [
+      {
+        timeZone: {
+          type: String,
+          default: "+06:00",
+        },
+      },
+    ],
     by: {
       type: String,
       default: "-",
