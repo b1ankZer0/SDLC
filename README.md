@@ -13,7 +13,7 @@ pnpm i
 # or
 bun i
 
-then
+#then
 npm run dev
 # or
 yarn dev
